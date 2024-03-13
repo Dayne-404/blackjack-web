@@ -1,15 +1,30 @@
 export default class Player {
-    constructor(name) {
+    constructor(name, bank = 0, dealer = false) {
         this.name = name;
         this.hand = [];
         this.total = 0;
         this.state = 0; //0 for under 21.. 1 for bust.. 2 for perfect 21 
+        this.bank = bank;
+        this.bet = 0;
+        this.winModifier = 0;
+        this.push = false;
+
+        if(dealer) {
+            this.bet = -1;
+        }
     }
 
     reset() {
         this.hand = [];
         this.total = 0;
         this.state = 0;
+        
+        if(!this.push) {
+            this.dealer ?  this.bet = 0 : this.bet = -1;
+            this.winModifier = 0;
+        } else {
+            this.push = false;
+        }        
     }
 
     recieveCard(card, hidden = 0) {

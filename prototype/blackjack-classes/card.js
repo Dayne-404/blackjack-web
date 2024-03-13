@@ -10,24 +10,24 @@ export default class Card {
             return `hidden`;
         
         const suitNames = {
-            1: 'spades',
-            2: 'diamonds',
-            3: 'clubs',
-            4: 'hearts'
+            1: '♠',
+            2: '♦',
+            3: '♣',
+            4: '♥'
         };
 
         let cardName = String(this.value);
         if(this.value === 11) {
-            cardName = 'Jack';
+            cardName = 'J';
         } else if (this.value === 12) {
-            cardName = 'Queen';
+            cardName = 'Q';
         } else if (this.value === 13) {
-            cardName = 'King'
+            cardName = 'K'
         } else if (this.value === 1) {
-            cardName = 'Ace';
+            cardName = 'A';
         }
 
-        const suitName = suitNames[this.suit] || 'unkown';
-        return `${cardName} of ${suitName}`;
+        const suitName = suitNames[this.suit] || 'U';
+        return `${cardName}${suitName}`;
     }
 }

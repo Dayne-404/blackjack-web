@@ -25,6 +25,22 @@ p {
     justify-content: center;
 }
 
+.lose-border {
+  box-shadow: red 0px -10px;
+}
+
+.blackjack-border {
+  box-shadow: gold 0px -10px;
+}
+
+.win-border {
+  box-shadow: green 0px -10px;
+}
+
+.hidden {
+  display: none;
+}
+
 .players-container {
     display: flex;
     justify-content: center;
