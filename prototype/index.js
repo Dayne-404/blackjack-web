@@ -11,6 +11,7 @@ const hitButton = document.getElementById('hit-btn');
 const standButton = document.getElementById('stay-btn');
 const doubleDownButton = document.getElementById('dbl-down-btn');
 const startBtn = document.getElementById('start-btn');
+const newGameBtn = document.getElementById('new-game-btn');
 
 const playersContainer = document.getElementById('players-container');
 const interfaceElements = [document.getElementById('interface-elements'), startBtn];
@@ -28,7 +29,16 @@ function waitForPlayerInput() {
     return new Promise(resolve => {
         hitButton.addEventListener('click', () => resolve('hit'));
         standButton.addEventListener('click', () => resolve('stand'));
+        doubleDownButton.addEventListener('click', () => resolve('double-down'));
     });
+}
+
+function resetPlayers(players, dealer) {
+    for(const player of players) {
+        player.reset();
+    }
+
+    dealer.reset();
 }
 
 function startGame(dealer, players, deck) {
@@ -65,11 +75,13 @@ async function playRound(players) {
     for (const player of players) {
         console.log(`Waiting for ${player.name}:`);
         let playerAction = null;
+        doubleDownButton.disabled = false;
         
         while((playerAction === null || playerAction === 'hit') && player.state === 0) {
             playerAction = await waitForPlayerInput();
     
             if(playerAction === 'hit') {
+                doubleDownButton.disabled = true;
                 const card = deck.takeCard();
                 player.recieveCard(card);
                 console.log(`${player.name} hits and draws a ${card.toString()}`);
@@ -80,6 +92,12 @@ async function playRound(players) {
 
         if(playerAction === 'stand') {
             console.log(`${player.name} stands...`);
+            updatePlayerCard(player);
+        } else if (playerAction === 'double-down') {
+            doubleDownButton.disabled = true;
+            const card = deck.takeCard();
+            player.recieveCard(card);
+            console.log(`${player.name} doubles down and draws a ${card.toString()}`);
             updatePlayerCard(player);
         }
             
@@ -117,11 +135,13 @@ function dealerPlay(dealer) {
 
 function getResults(players, dealer) {
     for (const player of players) {
-        if (player.state === 0 && player.total > dealer.total) {
+        if (player.state === 0 && dealer.state === 1) {
+            console.log(`${player.name} beats the dealer!`);
+        } else if (player.state === 0 && player.total > dealer.total) {
             console.log(`${player.name} beats the dealer!`);
         } else if (player.state === 0 && player.total === dealer.total) {
             console.log(`${player.name} is tied with the dealer! (bets pushed to the next round)`);
-        } else if (player.state === 0 && player.total < dealer.total) {
+        } else if (player.state === 0 && player.total < dealer.total && dealer.state === 0) {
             console.log(`${player.name} lost.. womp womp`);
         } else if (player.state === 2 && dealer.state !== 2) {
             console.log(`${player.name} has a blackjack! (2x the bet)`);
@@ -135,17 +155,9 @@ function getResults(players, dealer) {
             console.log(`${player.name} beats the dealer!`);
         } else if (player.state !== 2 && player.total === dealer.total) {
             console.log(`${player.name} is tied with the dealer! (bets pushed to the next round)`);
-        } else if (player.state !== 2 && player.total < dealer.total) {
+        } else if (player.state !== 2 && (dealer.state === 1 || player.total < dealer.total)) {
             console.log(`${player.name} lost.. womp womp`);
         }
-        
-        // if((player.state === 0 || player.state === 2) && player.total > dealer.total) {
-        //     console.log(`${player.name} beats the dealer!`);
-        // } else if (player.state != 1 && player.total === dealer.total) {
-        //     console.log(`${player.name} is tied with the dealer! (bets pushed to the next round)`);
-        // } else if (player.state === 1 || player.total < dealer.total) {
-        //     console.log(`${player.name} lost.. womp womp`);
-        // }
     }
 }
 
@@ -167,17 +179,27 @@ function setPlayerCards(players, dealer, container) {
     container.innerHTML = innerHtml;
 }
 
-startBtn.addEventListener('click', e => {
+function playBlackJack(players, dealer, deck) {
     console.log('Starting game!');
+    
+    newGameBtn.style.display = 'none';
+    resetPlayers(players, dealer);
     setPlayerCards(players, dealer, playersContainer);
-    toggleInterfaceVisibility(interfaceElements);
+
+    if(startBtn.style.display === 'block') {
+        toggleInterfaceVisibility(interfaceElements);
+    }
 
     startGame(dealer, players, deck);
     playRound(players).then(() => {
         dealerPlay(dealer);
         getResults(players, dealer);
+        newGameBtn.style.display = 'block';
     });
-});
+}
+
+newGameBtn.addEventListener('click', e => playBlackJack(players, dealer, deck));
+startBtn.addEventListener('click', e => playBlackJack(players, dealer, deck));
 
 
 

@@ -36,8 +36,9 @@ p {
     text-align: center; 
 }
 
-#start-btn {
+#start-btn, #new-game-btn {
   margin: 2rem auto;
+  display: block;
 }
 
 button {

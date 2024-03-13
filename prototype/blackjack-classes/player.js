@@ -6,18 +6,26 @@ export default class Player {
         this.state = 0; //0 for under 21.. 1 for bust.. 2 for perfect 21 
     }
 
-    recieveCard(card, hidden = 0) {
-        if(hidden)
-            card.hidden = hidden;
+    reset() {
+        this.hand = [];
+        this.total = 0;
+        this.state = 0;
+    }
 
-        this.hand.push(card);
+    recieveCard(card, hidden = 0) {
+        if(hidden) {
+            card.hidden = hidden;
+        }
 
         if(card.value > 10) {
             this.total += 10;
+        } else if (card.value === 1 && (this.total + 11) < 22) {
+            this.total += 11;
         } else {
             this.total += card.value;
         }
 
+        this.hand.push(card);
         this.state = this.getState();
     }
 
