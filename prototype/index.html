@@ -9,7 +9,17 @@
 <body>
     <h1>Blackjack</h1>
     <p>This is a work in progress build</p>
-    <button id="start-btn" style="display: block;">Start Game</button>
+    
+    <div id="start-screen" class="start-screen">
+        <form id="num-players-form" class="num-players-form">
+            <label for="num-players" min="1" max="5">Enter amount of players (1-5):</label>
+            <input type="number" id="num-players" name="num-players">
+            <input type="submit" class="submit-btn" value="Submit">
+        </form>
+    </div>
+
+    
+    
     <div id="interface-elements" style="display: none;">
         <div id="players-container" class="players-container"></div>
         <div class="button-container">

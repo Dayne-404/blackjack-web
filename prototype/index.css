@@ -1,101 +1,129 @@
 body {
-    margin-top: 2rem;
-    font-family: BlinkMacSystemFont,-apple-system,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Fira Sans","Droid Sans","Helvetica Neue",Helvetica,Arial,sans-serif;
+  margin-top: 2rem;
+  font-family: BlinkMacSystemFont,-apple-system,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Fira Sans","Droid Sans","Helvetica Neue",Helvetica,Arial,sans-serif;
 }
 
-h1, h3, p {
-    text-align: center;
-    margin: 0;
-    padding: 0;
+h1, h3, h4, p {
+  text-align: center;
+  margin: 0;
+  padding: 0;
+}
+
+h4 {
+margin-top: 0.2rem; /* Adjusted margin */
 }
 
 p {
-    font-weight: bold;
+  font-weight: bold;
 }
 
 .player-card {
-    width: 300px;
-    height: 300px;
-    border: 1px solid #dbdbdb;
-    border-radius: .375em;
+  width: 300px;
+  height: 300px;
+  border: 1px solid #dbdbdb;
+  border-radius: .375em;
 
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .lose-border {
-  box-shadow: red 0px -10px;
+box-shadow: red 0px -10px;
 }
 
 .blackjack-border {
-  box-shadow: gold 0px -10px;
+box-shadow: gold 0px -10px;
 }
 
 .win-border {
-  box-shadow: green 0px -10px;
+box-shadow: green 0px -10px;
 }
 
 .hidden {
-  display: none;
+display: none;
 }
 
-.players-container {
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-    margin: 2rem;
+input {
+  border: 1px solid #dbdbdb;
+  border-radius: .375em;
+  height: 2rem;
+  text-align: center;
+  margin: 0.5rem;
+}
+
+input[type=number] {
+  width: 10rem;
+}
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0; /* Optional, for some versions of Firefox */
 }
 
 .button-container {
-    text-align: center; 
+  text-align: center; 
 }
 
 #start-btn, #new-game-btn {
-  margin: 2rem auto;
-  display: block;
+margin: 2rem auto;
+display: block;
 }
 
-button {
-  align-items: center;
-  appearance: none;
-  background-color: #fff;
-  border: 1px solid #dbdbdb;
-  border-radius: .375em;
-  box-shadow: none;
-  box-sizing: border-box;
-  color: #363636;
-  cursor: pointer;
-  display: inline-flex;
-  font-size: 1rem;
-  height: 2.5em;
-  justify-content: center;
-  line-height: 1.5;
-  padding: calc(.5em - 1px) 1em;
-  position: relative;
+button, .submit-btn {
+align-items: center;
+appearance: none;
+background-color: #fff;
+border: 1px solid #dbdbdb;
+border-radius: .375em;
+box-shadow: none;
+box-sizing: border-box;
+color: #363636;
+cursor: pointer;
+display: inline-flex;
+font-size: 1rem;
+height: 2.5em;
+justify-content: center;
+line-height: 1.5;
+padding: calc(.5em - 1px) 1em;
+position: relative;
+text-align: center;
+user-select: none;
+-webkit-user-select: none;
+touch-action: manipulation;
+vertical-align: top;
+white-space: nowrap;
+}
+
+button:active, .submit-btn:active {
+border-color: #4a4a4a;
+outline: 0;
+}
+
+button:focus, .submit-btn:active {
+border-color: #485fc7;
+outline: 0;
+}
+
+button:hover, .submit-btn:active {
+border-color: #b5b5b5;
+}
+
+button:focus:not(:active), .submit-btn:active {
+box-shadow: rgba(72, 95, 199, .25) 0 0 0 .125em;
+}
+
+.start-screen {
+  padding: 2rem;
   text-align: center;
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: manipulation;
-  vertical-align: top;
-  white-space: nowrap;
 }
 
-button:active {
-  border-color: #4a4a4a;
-  outline: 0;
-}
-
-button:focus {
-  border-color: #485fc7;
-  outline: 0;
-}
-
-button:hover {
-  border-color: #b5b5b5;
-}
-
-button:focus:not(:active) {
-  box-shadow: rgba(72, 95, 199, .25) 0 0 0 .125em;
+.num-players-form, .add-players-form {
+  display: flex;
+  flex-direction: column;
+  width: 15rem;
+  align-items: center;
+  margin: auto;
 }
