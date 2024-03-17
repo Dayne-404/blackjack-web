@@ -2,7 +2,6 @@ const hitButton = document.getElementById('hit-btn');
 const standButton = document.getElementById('stay-btn');
 const doubleDownButton = document.getElementById('dbl-down-btn');
 
-const startButton = document.getElementById('start-btn');
 const restartButton = document.getElementById('new-game-btn');
 
 const cardsContainer = document.getElementById('players-container');
@@ -11,7 +10,6 @@ const gameInterfaceElements = document.getElementById('interface-elements');
 export default function playBlackJack(players, dealer, deck) {
     setPlayerCards(players, dealer);
     restartButton.style.display = 'none';
-    startButton.style.display = 'none';
     gameInterfaceElements.style.display = 'block'; 
 
     startGame(dealer, players, deck);
@@ -29,14 +27,10 @@ function resetPlayers(players) {
 }
 
 function startGame(dealer, players, deck) {
+    console.log("Starting new game");
     players.push(dealer);
     resetPlayers(players);
     deck.shuffle();
-
-    players[0].bet = 50;
-    players[1].bet = 100;
-    players[0].bank -= players[0].bet;
-    players[1].bank -= players[1].bet;
 
     for(let i = 0; i < 2; i++) {
         players.forEach(player => {

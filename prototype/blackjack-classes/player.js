@@ -8,6 +8,7 @@ export default class Player {
         this.bet = 0;
         this.winModifier = 0;
         this.push = false;
+        this.dealer = dealer;
 
         if(dealer) {
             this.bet = -1;
@@ -19,8 +20,8 @@ export default class Player {
         this.total = 0;
         this.state = 0;
         
-        if(!this.push) {
-            this.dealer ?  this.bet = 0 : this.bet = -1;
+        if(!this.push && !this.dealer) {
+            this.bet = 0;
             this.winModifier = 0;
         } else {
             this.push = false;

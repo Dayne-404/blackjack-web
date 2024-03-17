@@ -4,34 +4,52 @@ import playBlackJack from "./blackjack-classes/controller.js";
 import generatePlayersForm from "./generatePlayersForm.js";
 
 const deck = new Deck();
-const dayne = new Player('Dayne', 1000);
-const niko = new Player('Niko', 1000);
-const players = [];
 const dealer = new Player('Dealer', 0, true);
+const players = [];
 
-const startButton = document.getElementById('start-btn');
 const restartButton = document.getElementById('new-game-btn');
-const addPlayerButton = document.getElementById('player-add-btn');
+let generatedForm = null;
 
 const numPlayersForm = document.getElementById('num-players-form');
+const startScreen = document.getElementById('start-screen');
+
+const MAX_PLAYERS = 5;
+const MIN_PLAYERS = 1;
 
 numPlayersForm.addEventListener('submit', e => {
     e.preventDefault();
     const numPlayersInputEl = document.getElementById("num-players");
     let numPlayers = parseInt(numPlayersInputEl.value);
 
-    if(numPlayers > 4) {
-        numPlayers = 4
-    } else if (numPlayers < 1 || isNaN(numPlayers) || numPlayers === null) {
-        numPlayers = 1
+    if(numPlayers > MAX_PLAYERS) {
+        numPlayers = MAX_PLAYERS
+    } else if (numPlayers < MIN_PLAYERS || isNaN(numPlayers) || numPlayers === null) {
+        numPlayers = MIN_PLAYERS
     }
 
     numPlayersForm.style.display = 'none';
-    generatePlayersForm(numPlayers);
+    generatedForm = generatePlayersForm(numPlayers);
+    console.log(generatedForm);
+
+    generatedForm.addEventListener('submit', e => {
+        e.preventDefault();
+        for(let i = 1; i <= numPlayers; i++) {
+            const playerName = document.getElementById(`player${i}-name`).value;
+            const playerTotal = parseInt(document.getElementById(`player${i}-total`).value);
+            const newPlayer = new Player(playerName, playerTotal);
+            players.push(newPlayer);
+            console.log('Player added: ', newPlayer);
+            startScreen.style.display = 'none';
+        }
+
+        console.log("Players", players);
+        console.log("Dealer", dealer);
+        playBlackJack(players, dealer, deck);
+        restartButton.addEventListener('click', e => playBlackJack(players, dealer, deck));
+    });
 });
 
-// restartButton.addEventListener('click', e => playBlackJack(players, dealer, deck));
-// startButton.addEventListener('click', e => playBlackJack(players, dealer, deck));
+
 
 
 

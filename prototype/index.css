@@ -9,10 +9,6 @@ h1, h3, h4, p {
   padding: 0;
 }
 
-h4 {
-margin-top: 0.2rem; /* Adjusted margin */
-}
-
 p {
   font-weight: bold;
 }
@@ -51,10 +47,6 @@ input {
   height: 2rem;
   text-align: center;
   margin: 0.5rem;
-}
-
-input[type=number] {
-  width: 10rem;
 }
 
 input[type=number]::-webkit-inner-spin-button,
@@ -115,15 +107,35 @@ button:focus:not(:active), .submit-btn:active {
 box-shadow: rgba(72, 95, 199, .25) 0 0 0 .125em;
 }
 
-.start-screen {
+.players-container {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin: 0 0 1rem 0;
+}
+
+.add-players-container {
+  display: inline-grid;
+  grid-template-columns: auto auto;
+  gap: 1rem;
+  width: auto;
+}
+
+.start-screen, .interface-elements {
   padding: 2rem;
   text-align: center;
 }
 
-.num-players-form, .add-players-form {
+.num-players-form {
   display: flex;
   flex-direction: column;
   width: 15rem;
   align-items: center;
   margin: auto;
+}
+
+.player-items {
+  margin: auto;
+  width: 15rem;
+  text-align: right;
 }
