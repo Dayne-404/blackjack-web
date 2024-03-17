@@ -37,6 +37,10 @@ box-shadow: gold 0px -10px;
 box-shadow: green 0px -10px;
 }
 
+.push-border {
+  box-shadow: lightblue 0px -10px;
+}
+
 .hidden {
 display: none;
 }
@@ -105,6 +109,10 @@ border-color: #b5b5b5;
 
 button:focus:not(:active), .submit-btn:active {
 box-shadow: rgba(72, 95, 199, .25) 0 0 0 .125em;
+}
+
+#bet-btn-container {
+  margin: 1rem 0;
 }
 
 .players-container {

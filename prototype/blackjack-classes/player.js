@@ -23,9 +23,7 @@ export default class Player {
         if(!this.push && !this.dealer) {
             this.bet = 0;
             this.winModifier = 0;
-        } else {
-            this.push = false;
-        }        
+        }      
     }
 
     recieveCard(card, hidden = 0) {
