@@ -97,8 +97,13 @@ function startGame(dealer, players, deck) {
 
 async function playRound(players, deck) { 
     for (const player of players) {
+        colorPlayerBackground(player);
         let playerAction = null;
         doubleDownButton.disabled = false;
+
+        if(!canDoubledown(player)) {
+            doubleDownButton.disabled = true;
+        }
         
         while((playerAction === null || playerAction === 'hit') && player.state === 0) {
             playerAction = await waitForPlayerInput();
@@ -117,8 +122,15 @@ async function playRound(players, deck) {
             doubleDownButton.disabled = true;
             player.recieveCard(deck.takeCard());
             updatePlayerCard(player);
-        }       
+            colorPlayerBackground(player, true);
+        }
+        
+        removePlayerBackground(player);
     }
+}
+
+function canDoubledown(player) {
+    return player.bank >= player.bet
 }
 
 function dealerPlay(dealer, deck) {
@@ -177,11 +189,11 @@ function getResults(players, dealer) {
         }
         
         updatePlayerCard(player);
-        colorPlayerCard(player, 1);
+        colorPlayerBorder(player, 1);
     }
 
     updatePlayerCard(dealer);
-    colorPlayerCard(dealer, 1);
+    colorPlayerBorder(dealer, 1);
 }
 
 function waitForPlayerInput() {
@@ -239,7 +251,7 @@ function updatePlayerCard(player) {
     if(player.dealer) {
         totalEl.classList.remove('hidden');
     } else {
-        colorPlayerCard(player);
+        colorPlayerBorder(player);
     }
     
     if (player.bet > 0 && !player.dealer) {
@@ -252,8 +264,36 @@ function updatePlayerCard(player) {
     bankEl.innerHTML = `Earnings: ${player.bank}`;
 }
 
-function colorPlayerCard(player, finalRound = false) {
+function colorPlayerBackground(player, isDoubleDown = false) {
     const cardEl = document.getElementById(`${player.name}-card`);
+
+    if(isDoubleDown) {
+        cardEl.classList.add('double-down-background');
+    }
+
+    cardEl.classList.add('grey-background');
+}
+
+function removePlayerBackground(player) {
+    const cardEl = document.getElementById(`${player.name}-card`);
+
+    cardEl.classList.remove('grey-background');
+}
+
+function colorPlayerBorder(player, finalRound = false) {
+    const cardEl = document.getElementById(`${player.name}-card`);
+
+    if(player.dealer) {
+        if(player.state === 0) {
+            cardEl.classList.add('win-border');
+        } else if (player.state === 1) {
+            cardEl.classList.add('lose-border');
+        } else if (player.state === 2) {
+            cardEl.classList.add('blackjack-border');
+        }
+
+        return;
+    }
 
     if(player.push) {
         cardEl.classList.add('push-border')

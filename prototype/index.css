@@ -41,6 +41,16 @@ box-shadow: green 0px -10px;
   box-shadow: lightblue 0px -10px;
 }
 
+.double-down-background {
+  background-color: orange;
+  border-color: black;
+}
+
+.grey-background {
+  background-color: lightgray;
+  border-color: black;
+}
+
 .hidden {
 display: none;
 }
@@ -109,6 +119,10 @@ border-color: #b5b5b5;
 
 button:focus:not(:active), .submit-btn:active {
 box-shadow: rgba(72, 95, 199, .25) 0 0 0 .125em;
+}
+
+button:disabled {
+  background-color: lightgray;
 }
 
 #bet-btn-container {
