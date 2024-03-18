@@ -1,6 +1,9 @@
+import Card from "./card.js";
+
 const hitButton = document.getElementById('hit-btn');
 const standButton = document.getElementById('stay-btn');
 const doubleDownButton = document.getElementById('dbl-down-btn');
+const splitButton = document.getElementById('split-btn');
 
 const restartButton = document.getElementById('new-game-btn');
 
@@ -24,7 +27,9 @@ export default function playBlackJack(players, dealer, deck) {
 
     collectBets(players).then(() => {
         startGame(dealer, players, deck);
+        updatePlayerCard(players[0]);
         playRound(players, deck).then(() => {
+            console.log('bet', players[0].bet);
             dealerPlay(dealer, deck);
             getResults(players, dealer);
             restartButton.style.display = 'block';
@@ -57,7 +62,6 @@ async function collectBets(players) {
         betContainer.style.display = 'none';
         betButtonsContainer.style.display = 'none';
         buttonsContainer.style.display = 'block';
-        console.log(`${player.name} is betting ${player.bet}`);
     }
 }
 
@@ -75,7 +79,6 @@ function resetPlayers(players) {
 }
 
 function startGame(dealer, players, deck) {
-    console.log("Starting new game");
     players.push(dealer);
 
     for(let i = 0; i < 2; i++) {
@@ -98,39 +101,99 @@ function startGame(dealer, players, deck) {
 async function playRound(players, deck) { 
     for (const player of players) {
         colorPlayerBackground(player);
+        doubleDownButton.disabled = true;
+        splitButton.disabled = true;
+
+        if(player.canDoubleDown()) { doubleDownButton.disabled = false; }
+        if(player.canSplit()) { splitButton.disabled = false; }
+
         let playerAction = null;
-        doubleDownButton.disabled = false;
 
-        if(!canDoubledown(player)) {
-            doubleDownButton.disabled = true;
-        }
-        
-        while((playerAction === null || playerAction === 'hit') && player.state === 0) {
+        if(player.state === 0) {
             playerAction = await waitForPlayerInput();
-    
-            if(playerAction === 'hit') {
-                doubleDownButton.disabled = true;
-                player.recieveCard(deck.takeCard());
-            }
 
-            updatePlayerCard(player);
-        }
-
-        if(playerAction === 'stand') {
-            //Keep for some reason??
-        } else if (playerAction === 'double-down') {
-            doubleDownButton.disabled = true;
-            player.recieveCard(deck.takeCard());
-            updatePlayerCard(player);
-            colorPlayerBackground(player, true);
+            if(playerAction === 'split') {
+                await split(player, deck);
+            } else if (playerAction === 'hit') {
+                await hit(player, deck);
+            } else if (playerAction === 'double-down') {
+                doubleDown(player, deck);
+            } 
         }
         
+        doubleDownButton.disabled = true;
+        splitButton.disabled = true;
         removePlayerBackground(player);
     }
 }
 
-function canDoubledown(player) {
-    return player.bank >= player.bet
+function doubleDown(player, deck) {
+    splitButton.disabled = true;
+    doubleDownButton.disabled = true;
+    
+    if(player.isSplit) {
+        player.winModifier[player.currentHand] += 2;
+        player.bank -= player.bet[player.currentHand]; 
+    } else {
+        player.winModifier += 2;
+        player.bank -= player.bet;
+    }
+    
+    player.recieveCard(deck.takeCard());
+    updatePlayerCard(player);
+    colorPlayerBackground(player, true);
+}
+
+async function hit(player, deck) {
+    let playerAction = 'hit';
+    
+    while(playerAction === 'hit' && player.state === 0) {
+        splitButton.disabled = true;
+        doubleDownButton.disabled = true;
+        player.recieveCard(deck.takeCard());
+        updatePlayerCard(player);
+
+        if(player.state === 0) {
+            playerAction = await waitForPlayerInput();
+        }
+    }
+}
+
+async function split(player, deck) {
+    splitButton.disabled = true;
+    doubleDownButton.disabled = true;
+    
+    
+    player.split();
+    player.recieveCard(deck.takeCard());
+    player.currentHand = 1;
+    player.recieveCard(deck.takeCard());
+    setPlayerCardsAsSplit(player);
+
+    player.bank -= player.bet[0];
+    
+    for(let i = 0; i < player.hand.length; i++) {
+        player.currentHand = i;
+        if(player.canDoubleDown()) { doubleDownButton.disabled = false; }
+        colorCurrentHand(player);
+
+        let playerAction = null;
+
+        while((playerAction === 'hit' || playerAction === null) && player.state[i] === 0) {
+            updatePlayerCard(player);    
+            playerAction = await waitForPlayerInput();
+            
+            if(playerAction === 'hit') {
+                doubleDownButton.disabled = true;
+                player.recieveCard(deck.takeCard());
+            }           
+        }
+
+        if(playerAction === 'double-down') {
+            doubleDown(player, deck);
+        }
+    }
+    colorCurrentHand(player, true);
 }
 
 function dealerPlay(dealer, deck) {
@@ -145,55 +208,85 @@ function dealerPlay(dealer, deck) {
 
 function getResults(players, dealer) {
     for (const player of players) {
-        if (player.state === 0 && dealer.state === 1) {
-            console.log(`${player.name} beats the dealer!`);
-            player.winModifier = 2;
-        } else if (player.state === 0 && player.total > dealer.total) {
-            console.log(`${player.name} beats the dealer!`);
-            player.winModifier = 2;
-        } else if (player.state === 0 && player.total === dealer.total) {
-            console.log(`${player.name} is tied with the dealer! (bets pushed to the next round)`);
-            player.push = true;
-            player.winModifier = 2;
-        } else if (player.state === 0 && player.total < dealer.total && dealer.state === 0) {
-            console.log(`${player.name} lost.. womp womp`);
-        } else if (player.state === 2 && dealer.state !== 2) {
-            console.log(`${player.name} has a blackjack! (1.5x the bet)`);
-            player.winModifier = 2.5;
-        } else if (player.state === 2 && dealer.state === 2) {
-            console.log(`${player.name} and dealer both have blackjack (2x bets pushed to the next round)`);
-            player.push = true;
-            player.winModifier = 2.5;
-        } else if (player.state === 1) {
-            console.log(`${player.name} busts!`);
-        } else if (player.state !== 2 && dealer.state === 2) {
-            console.log(`${player.name} lost to dealer's blackjack...`);
-        } else if (player.state !== 2 && player.total > dealer.total) {
-            console.log(`${player.name} beats the dealer!`);
-            player.winModifier = 2;
-        } else if (player.state !== 2 && player.total === dealer.total) {
-            console.log(`${player.name} is tied with the dealer! (bets pushed to the next round)`);
-            player.push = true;
-            player.winModifier = 2;
-        } else if (player.state !== 2 && (dealer.state === 1 || player.total < dealer.total)) {
-            console.log(`${player.name} lost.. womp womp`);
-        }
-
-        if(player.push === false) {
-            if(player.winModifier === 0) {
-                dealer.bank += player.bet;
+        if (player.isSplit) {
+            for (let i = 0; i < player.hand.length; i++) {
+                const handTotal = player.total[i];
+                const handState = player.state[i];
+                const winModifier = player.winModifier[i];
+                player.currentHand = i;
+                processHand(player, handTotal, handState, winModifier, dealer);
             }
-
-            player.bet = player.bet * player.winModifier;
-            player.bank += player.bet;
+        } else {
+            // Single hand scenario
+            processHand(player, player.total, player.state, player.winModifier, dealer);
         }
-        
-        updatePlayerCard(player);
-        colorPlayerBorder(player, 1);
     }
 
     updatePlayerCard(dealer);
     colorPlayerBorder(dealer, 1);
+}
+
+function processHand(player, handTotal, handState, winModifier, dealer) {
+    if (handState === 0 && dealer.state === 1) {
+        console.log(`${player.name} beats the dealer!`);
+        winModifier += 2;
+    } else if (handState === 0 && handTotal > dealer.total) {
+        console.log(`${player.name} beats the dealer!`);
+        winModifier += 2;
+    } else if (handState === 0 && handTotal === dealer.total) {
+        console.log(`${player.name} is tied with the dealer! (bets pushed to the next round)`);
+        player.push = true;
+        winModifier += 2;
+    } else if (handState === 0 && handTotal < dealer.total && dealer.state === 0) {
+        console.log(`${player.name} lost.. womp womp`);
+        winModifier = 0;
+    } else if (handState === 2 && dealer.state !== 2) {
+        console.log(`${player.name} has a blackjack! (1.5x the bet)`);
+        winModifier += 2.5;
+    } else if (handState === 2 && dealer.state === 2) {
+        console.log(`${player.name} and dealer both have blackjack (2x bets pushed to the next round)`);
+        player.push = true;
+        winModifier += 2.5;
+    } else if (handState === 1) {
+        console.log(`${player.name} busts!`);
+        winModifier = 0;
+    } else if (handState !== 2 && dealer.state === 2) {
+        console.log(`${player.name} lost to dealer's blackjack...`);
+        winModifier = 0;
+    } else if (handState !== 2 && handTotal > dealer.total) {
+        console.log(`${player.name} beats the dealer!`);
+        winModifier += 2;
+    } else if (handState !== 2 && handTotal === dealer.total) {
+        console.log(`${player.name} is tied with the dealer! (bets pushed to the next round)`);
+        player.push = true;
+        winModifier += 2;
+    } else if (handState !== 2 && (dealer.state === 1 || handTotal < dealer.total)) {
+        console.log(`${player.name} lost.. womp womp`);
+        winModifier = 0;
+    }
+
+    if (player.push === false) {
+        if (winModifier === 0) {
+            if (player.isSplit) {
+                console.log('lose', player.bet[player.currentHand]);
+                dealer.bank += player.bet[player.currentHand];
+            } else {
+                dealer.bank += player.bet;
+            } 
+        } else {
+            if(player.isSplit) {
+                console.log('win', player.bet[player.currentHand] * winModifier, winModifier);
+                player.bet[player.currentHand] *= winModifier;
+                player.bank += player.bet[player.currentHand];
+            } else {
+                player.bet *= winModifier;
+                player.bank += player.bet;
+            }
+        }
+    }
+
+    updatePlayerCard(player);
+    colorPlayerBorder(player, 1);
 }
 
 function waitForPlayerInput() {
@@ -201,6 +294,7 @@ function waitForPlayerInput() {
         hitButton.addEventListener('click', () => resolve('hit'));
         standButton.addEventListener('click', () => resolve('stand'));
         doubleDownButton.addEventListener('click', () => resolve('double-down'));
+        splitButton.addEventListener('click', () => resolve('split'));
     });
 }
 
@@ -243,24 +337,45 @@ function setPlayerCards(players, dealer) {
     cardsContainer.innerHTML = innerHtml;
 }
 
+function setPlayerCardsAsSplit(player) {
+    const firstHand = document.getElementById(`${player.name}-hand`);
+    const totalEl = document.getElementById(`${player.name}-total`);
+    const secondHand = document.createElement('p');
+    firstHand.id = `${player.name}-hand-0`;
+    secondHand.id = `${player.name}-hand-1`;
+    firstHand.innerHTML = `[ ${player.hand[0]} ]`;
+    secondHand.innerHTML = `[ ${player.hand[1]} ]`;
+
+    totalEl.innerHTML = `${player.total[0]} ${player.total[1]}`;
+
+    firstHand.insertAdjacentElement('afterend', secondHand);
+}
+
 function updatePlayerCard(player) {
-    const handEl = document.getElementById(`${player.name}-hand`);
     const totalEl = document.getElementById(`${player.name}-total`);
     const bankEl = document.getElementById(`${player.name}-bank`);
     
+    if(player.isSplit) {
+        document.getElementById(`${player.name}-hand-0`).innerHTML = `[${player.hand[0]}]`;
+        document.getElementById(`${player.name}-hand-1`).innerHTML = `[${player.hand[1]}]`;
+        totalEl.innerHTML = `${player.total[0]} ${player.total[1]}`;
+    } else {
+        document.getElementById(`${player.name}-hand`).innerHTML = `[${player.hand}]`;
+        totalEl.innerHTML = player.total;
+    }
+
     if(player.dealer) {
         totalEl.classList.remove('hidden');
     } else {
+        let bet = player.bet;
+        if(Array.isArray(bet)) {
+            bet = player.bet[0] + player.bet[1];
+        }
+
+        document.getElementById(`${player.name}-bet`).innerHTML = `Bet: ${bet}`;
         colorPlayerBorder(player);
     }
     
-    if (player.bet > 0 && !player.dealer) {
-        const betEl = document.getElementById(`${player.name}-bet`);
-        betEl.innerHTML = `Bet: ${player.bet}`;
-    }
-    
-    totalEl.innerHTML = player.total;
-    handEl.innerHTML = `[${player.hand}]`;
     bankEl.innerHTML = `Earnings: ${player.bank}`;
 }
 
@@ -272,6 +387,22 @@ function colorPlayerBackground(player, isDoubleDown = false) {
     }
 
     cardEl.classList.add('grey-background');
+}
+
+function colorCurrentHand(player, removeColor = false) {
+    const firstHand = document.getElementById(`${player.name}-hand-0`);
+    const secondHand = document.getElementById(`${player.name}-hand-1`);
+    
+    if(removeColor) {
+        firstHand.classList.remove('split-text-color');
+        secondHand.classList.remove('split-text-color');
+    } else if(player.currentHand === 0) {
+        secondHand.classList.remove('split-text-color');
+        firstHand.classList.add('split-text-color');
+    } else {
+        firstHand.classList.remove('split-text-color');
+        secondHand.classList.add('split-text-color');
+    }
 }
 
 function removePlayerBackground(player) {

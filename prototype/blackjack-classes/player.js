@@ -19,6 +19,31 @@ export default class Player {
         
         this.winModifier = 0;   //The win Modifier the players bet has
         this.push = false;      //Whether or not the player is getting pushed
+        this.isSplit = false;     //Whether the hand is split into two or not
+        this.currentHand = 0;
+    }
+
+    split() {
+        this.isSplit = true;
+        this.currentHand = 0;
+        this.winModifier = [0, 0];
+        this.state = [0, 0];
+        this.bet = [this.bet, this.bet]; 
+        this.total = [
+            this.getCardValue(this.hand[0]), 
+            this.getCardValue(this.hand[0])];
+        let splitArray = [[this.hand[0]],[this.hand[1]]];
+        this.hand = splitArray;
+    }
+
+    getCardValue(card, handValue) {
+        if(card.value > 10) {
+            return 10;
+        } else if (card.value === 1 && (handValue + 11) < 22) {
+            return 11;
+        }
+        
+        return card.value;
     }
 
     /*
@@ -34,11 +59,31 @@ export default class Player {
         this.hand = [];
         this.total = 0;
         this.state = 0;
+        this.isSplit = false;
+        this.currentHand = 0;
         
-        if(!this.push && !this.dealer) {
+        if(!this.push && !this.isSplit) {
             this.bet = 0;
-            this.winModifier = 0;
-        }      
+        } else if(this.isSplit) {
+            this.bet = this.bet[0] + this.bet[1];
+        }
+
+        this.push = false;
+    }
+
+    canSplit() {
+        return (
+            this.hand[0].value === this.hand[1].value &&
+            this.canDoubleDown()
+        );
+    }
+
+    canDoubleDown() {
+        if(!this.isSplit) {
+            return this.bank >= this.bet;
+        } else {
+            return this.bank >= this.bet[this.currentHand];
+        }
     }
 
     /*
@@ -56,16 +101,15 @@ export default class Player {
             card.hidden = hidden;
         }
 
-        if(card.value > 10) {
-            this.total += 10;
-        } else if (card.value === 1 && (this.total + 11) < 22) {
-            this.total += 11;
+        if(this.isSplit) {
+            this.total[this.currentHand] += this.getCardValue(card, this.total[this.currentHand]);
+            this.hand[this.currentHand].push(card);
+            this.state[this.currentHand] = this.getState(this.total[this.currentHand]);
         } else {
-            this.total += card.value;
+            this.total += this.getCardValue(card, this.total);
+            this.hand.push(card);
+            this.state = this.getState(this.total);
         }
-
-        this.hand.push(card);
-        this.state = this.getState();
     }
 
     /*
@@ -77,25 +121,13 @@ export default class Player {
         the function returns 2 and anything else the function will 
         return 0
     */
-    getState() {
-        if(this.total > 21) {
+    getState(total) {
+        if(total > 21) {
             return 1;
-        } else if (this.total === 21) {
+        } else if (total === 21) {
             return 2;
         }
 
         return 0;
-    }
-
-    /*
-        toString()
-
-        Simple toString method that has the format:
-        <name>
-        [ <hand> ] : <total>
-        In this state: <state>
-    */
-    toString() {
-        return `${this.name}\n[ ${this.hand} ] : ${this.total}\nIn this state: ${this.getState()}`;
     }
 }
