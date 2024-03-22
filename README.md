@@ -23,4 +23,4 @@ This is a big step from the prototype build of the game. This step sees the intr
 
 This part of the project will see a much better UI implementation using React for the front-end. Most of the backend should remain the same. The main difference will be the introduction of a much sleeker looking UI
 
-** Heres to not losing interest and actually completing a project! 👍 **
+**Heres to not losing interest and actually completing a project! 👍**
