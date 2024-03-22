@@ -146,6 +146,16 @@ button:disabled {
 background-color: lightgray;
 }
 
+.server-selection-container {
+  text-align: center;
+  margin: 1rem;
+}
+
+.server-selection-container h3, 
+.server-selection-container button {
+  margin: 1rem;
+}
+
 .table-container {
   max-height: 15rem;
   overflow-y: auto;
@@ -167,27 +177,36 @@ background-color: lightgray;
   border-bottom: 1px solid #dbdbdb;
 }
 
-.player-table td {
-  cursor: pointer;
-}
-
 .player-table th {
   background-color: #f2f2f2;
 }
 
-.player-table tbody tr:hover {
-  background-color: #dbdbdb !important;
+.player-table th {
+  cursor: auto;
+}
+
+.player-table tr {
+  cursor: pointer;
 }
 
 .player-table tbody tr:nth-child(even) {
-  background-color: #f2f2f2; /* Light gray background for even rows */
+  background-color: #f2f2f2; 
 }
 
 .player-table tbody tr:nth-child(odd) {
-  background-color: #eaeaea; /* White background for odd rows */
+  background-color: #eaeaea;
 }
 
-.player-table tbody tr.room-unavalible {
+.player-table .table-row-selected td,
+#table-row-selected {
+  background-color: #d2d2d2;
+}
+
+.player-table tbody tr:hover {
+  background-color: #dbdbdb;
+}
+
+.player-table tbody tr.unavalible {
   background-color: gray;
   color: white;
   cursor: not-allowed; 
@@ -197,13 +216,8 @@ background-color: lightgray;
   background-color: #d2d2d2;
 }
 
-.server-selection-container {
-  text-align: center;
-  margin: 1rem;
-}
 
-.server-selection-container h3, 
-.server-selection-container button {
-  margin: 1rem;
-}
+
+
+
 

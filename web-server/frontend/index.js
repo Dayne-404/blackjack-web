@@ -35,7 +35,7 @@ function refreshServers(table) {
     renderTable(table, servers);
 }
 
-function initServerSelect(table) {
+function initServerSelect() {
     console.log('requesting room data');
     socket.emit('request-room-data');
     document.getElementById('server-join-btn').addEventListener('click', joinServer);
@@ -92,7 +92,7 @@ function renderTable(table, rooms = null) {
         
         console.log(room.avalible);
         if(!room.avalible) {
-            newRow.classList.add('room-unavalible');
+            newRow.classList.add('unavalible');
         }
         
         tbody.appendChild(newRow);
