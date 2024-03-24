@@ -35,7 +35,7 @@ io.on('connection', (socket) => {
   socket.on('initPlayer', (username, bank) => {
     if(!players[socket.id]) {
       console.log('\nPlayer sent from:', socket.id);
-      players[socket.id] = new Player(username, bank);
+      players[socket.id] = new Player(socket.id, username, bank);
       console.log('New player created: ', players[socket.id].toString());
     }
   }); 
@@ -47,9 +47,6 @@ io.on('connection', (socket) => {
     for(const roomId in rooms) {
       simplifiedRooms[roomId] = rooms[roomId].safeFormat();
     }
-
-    simplifiedRooms[2].avalible = false;
-    simplifiedRooms[5].avalible = false;
 
     console.log(rooms);
     console.log(simplifiedRooms);
