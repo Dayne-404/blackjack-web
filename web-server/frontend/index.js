@@ -17,6 +17,8 @@ const socket = io();
 let clientRooms = null;
 
 const table = document.getElementById('server-selection-table');
+const playerCreationModel = document.getElementById('player-create-modal');
+
 table.addEventListener('click', event => {
     setSelectedTableRow(table, event);
 });
@@ -27,12 +29,12 @@ table.addEventListener('dblclick', event => {
 });
 
 document.addEventListener('click', documentClickHandler);
-
+playerCreationModel.style.display = 'none';
 initServerSelect(table);
 
-function refreshServers(table) {
-    const servers = getServerData();
-    renderTable(table, servers);
+function refreshServers() {
+    console.log('requesting room data');
+    socket.emit('request-room-data');
 }
 
 function initServerSelect() {
@@ -47,15 +49,46 @@ socket.on('send-room-data', (serverRooms) => {
     renderTable(table, clientRooms);
 });
 
-function getServerData() {
-    
-}
-
 
 
 function joinServer () {
-    console.log('joining server.. [ data ]');
-    //Do somethiwng
+    const selectedRow = table.querySelector('#table-row-selected');
+    let roomId = null;
+    
+    if(!selectedRow) {
+        console.log('ERR: User has not selected a server');
+        return;
+    }
+
+    roomId = selectedRow.dataset.id;
+    
+    if(!roomId) {
+        console.log('ERR: Room not found unable to join..');
+    } 
+
+    console.log('Activating player creation modal');
+    playerCreationModel.style.display = 'block';
+
+    playerCreationModel.addEventListener('submit', event => {
+        event.preventDefault();
+        const username = document.getElementById('username').value;
+        const bank = document.getElementById('bank').value;
+        joinRoom(username, bank, roomId);
+        playerCreationModel.style.display = 'none';
+    });
+    
+    playerCreationModel.querySelector('#cancel-btn').addEventListener('click', event => {
+        console.log("Close modal");
+        playerCreationModel.querySelectorAll('input').forEach((input) => {
+            input.value = '';
+        })
+        playerCreationModel.style.display = 'none';
+    });
+}
+
+function joinRoom(playerName, playerBank, roomId) {
+    console.log(`Attempting to join room with id=${roomId}`);
+    socket.emit('join-room', (roomId));
 }
 
 function renderTable(table, rooms = null) {
@@ -90,7 +123,6 @@ function renderTable(table, rooms = null) {
 
         newRow.append(nameCell, playersCell, privateCell);
         
-        console.log(room.avalible);
         if(!room.avalible) {
             newRow.classList.add('unavalible');
         }
@@ -98,8 +130,6 @@ function renderTable(table, rooms = null) {
         tbody.appendChild(newRow);
     });
 }
-
-
 
 function documentClickHandler(event) {
     const target = event.target;
