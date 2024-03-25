@@ -8,8 +8,6 @@ class Dealer {
 
     toString() {
         return `
-        name: ${this.name}
-        -----------------------
         bank: ${this.bank}
         hand: ${this.hand.toString()}
         `

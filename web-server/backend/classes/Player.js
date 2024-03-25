@@ -1,10 +1,10 @@
 const Hand = require('./Hand');
 
 class Player {
-    constructor(id, name, bank = 1000) {
-        this.id = id;
+    constructor(name, bank = 1000) {
         this.name = name;
         this.bank = bank;
+        this.bet = 0;
         this.hand = new Hand();
     }
 

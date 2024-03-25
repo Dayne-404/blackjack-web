@@ -1,7 +1,7 @@
 class Hand {
     constructor() {
-        this.hand = [];
-        this.total = this.calculateHandTotal(this.hand);
+        this.cards = [];
+        this.total = this.calculateHandTotal(this.cards);
     }
 
     calculateHandTotal(hand) {
@@ -12,8 +12,8 @@ class Hand {
         return 0;
     }
 
-    toString() {
-        return `[${this.hand}]`
+    test() {
+        console.log('test');
     }
 }
 

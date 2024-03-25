@@ -11,7 +11,8 @@
         <h1>Blackjack Multiplayer</h1>
         <p>This is a work in progress build</p>
     </header>
-    <main>
+    
+    <div id="main-menu" class="">
         <div class="room-selection-container">
             <h3>Table Select</h3>
             <div class="table-container border">
@@ -52,10 +53,24 @@
                     </div>
                 </form>
             </div>
+        </div>   
+    </div>
+
+    <div id="game-view" class="hidden">
+        <div id="players-container" class="players-container">
+            <!-- Players & Dealer will be inserted into this -->
         </div>
-        
-    </main>
+        <div id="button-container" class="button-container">
+            <button id="hit-btn">Hit</button>
+            <button id="stay-btn">Stay</button>
+            <button id="dbl-down-btn">Double Down</button>
+            <button id="split-btn">Split</button>
+        </div>
+    </div>
+
     <script src="/socket.io/socket.io.js"></script>
+    <script src="menuController.js" type="module"></script>
+    <script src="blackjackController.js" type="module"></script>
     <script src="index.js" type="module"></script>
 </body>
 </html>

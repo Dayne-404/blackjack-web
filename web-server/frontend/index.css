@@ -21,6 +21,13 @@ main {
   margin: 2rem;
 }
 
+.players-container {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
 .player-card {
   width: 300px;
   height: 300px;

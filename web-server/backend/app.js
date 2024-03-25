@@ -18,7 +18,7 @@ const { v4: uuidv4 } = require('uuid');
 
 app.use(express.static(rootPath + "/frontend"));
 
-let players = {};
+let socketToRoom = {};
 let rooms = {
   [uuidv4()]: new Table('alpha'),
   [uuidv4()]: new Table('beta'),
@@ -34,14 +34,6 @@ app.get('/', (req, res) => {
 io.on('connection', (socket) => {
   console.log('\nPlayer connected: ', socket.id);
   
-  socket.on('initPlayer', (username, bank) => {
-    if(!players[socket.id]) {
-      console.log('\nPlayer sent from:', socket.id);
-      players[socket.id] = new Player(socket.id, username, bank);
-      console.log('New player created: ', players[socket.id].toString());
-    }
-  }); 
-
   socket.on('request-room-data', () => {
     console.log('\nClient asking for room data:', socket.id);
 
@@ -56,12 +48,15 @@ io.on('connection', (socket) => {
   socket.on('create-room', (roomName, playerName, playerBank) => {
     const roomId = uuidv4();
     rooms[roomId] = new Table(roomName);
-    rooms[roomId].addPlayer(
-      new Player(socket.id, playerName, playerBank)
+    rooms[roomId].addPlayer(socket.id,
+      new Player(playerName, playerBank)
     );
 
     console.log(`${socket.id} creating room with id: ${roomId}`);
     console.log(rooms[roomId]);
+    socket.join(roomId);
+    socketToRoom[socket.id] = roomId;
+    socket.emit('start-game', rooms[roomId]);
   });
 
   socket.on('join-room', (playerName, playerBank, roomId) => {
@@ -72,28 +67,34 @@ io.on('connection', (socket) => {
       return;
     }
     
-    rooms[roomId].addPlayer(
-      new Player(socket.id, playerName, playerBank)
+    rooms[roomId].addPlayer(socket.id,
+      new Player(playerName, playerBank)
     );
-    socket.join(roomId);
 
-    console.log(rooms[roomId]);
+    socket.join(roomId);
+    socketToRoom[socket.id] = roomId;
+    socket.emit('start-game', rooms[roomId]);
+    io.to(roomId).emit('player-connect', rooms[roomId]);
   });
 
   
   socket.on('disconnect', (reason) => {
-    console.log('\nPlayer disconnected:', reason, socket.id);
+    console.log('\nSocket disconnecting: ', socket.id);
     
-    if(socket.id in players) {
-      delete players[socket.id];
-      console.log('Player deleted for', socket.id);
+    let roomId = socketToRoom[socket.id];
+    if(roomId) {
+      console.log('Socket was part of room: ', roomId)
+      delete rooms[roomId].removePlayer(socket.id);
+      delete socketToRoom[socket.id];
+      io.to(roomId).emit('player-disconnect', rooms[roomId]);
     }
+
+
+    socket.rooms.forEach(room => {
+      console.log(room);
+    })
   });
 });
-
-function sendErrorMessage(message) {
-  socket.emit('send-message', (message));
-}
 
 server.listen(port, () => {
   console.log(`Server is listening on port ${port}`);
