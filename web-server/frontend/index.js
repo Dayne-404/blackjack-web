@@ -1,98 +1,87 @@
-// document.addEventListener('DOMContentLoaded', () => {
-//     const socket = io();
-
-//     const form = document.getElementById('player-form');
-//     form.addEventListener('submit', event => {
-//         event.preventDefault();
-
-//         const username = document.getElementById('username').value;
-//         const bank = document.getElementById('bank').value;
-
-//         socket.emit('initPlayer', username, bank);
-//     });
-// });
-
 const socket = io();
 
 let clientRooms = null;
 let selectedRoom = null;
 
-const table = document.getElementById('server-selection-table');
-const playerCreationModel = document.getElementById('player-create-modal');
-const serverCreateInput = document.getElementById('server-name-container');
-
-table.addEventListener('click', event => {
-    setSelectedTableRow(table, event);
-});
-
-table.addEventListener('dblclick', event => {
-    setSelectedTableRow(table, event);
-    joinServer();
-});
-
-playerCreationModel.addEventListener('submit', event => {
-    event.preventDefault();
-    const username = document.getElementById('create-username').value;
-    const bank = document.getElementById('create-bank').value;
-    
-    if(serverCreateInput.style.display === 'none') {
-        joinRoom(username, bank, selectedRoom);
-    } else {
-        const serverName = document.getElementById('create-server').value;
-        createRoom(serverName, username, bank);
-    }
-        
-    serverCreateInput.style.display = 'none';
-    playerCreationModel.style.display = 'none';
-});
-
-playerCreationModel.querySelector('#cancel-btn').addEventListener('click', event => {
-    console.log("Close modal");
-    playerCreationModel.querySelectorAll('input').forEach((input) => {
-        input.value = '';
-    })
-    serverCreateInput.style.display = 'none';
-    playerCreationModel.style.display = 'none';
-});
-
-document.addEventListener('click', documentClickHandler);
-playerCreationModel.style.display = 'none';
-initServerSelect(table);
-
-function refreshServers() {
-    console.log('requesting room data');
-    socket.emit('request-room-data');
-}
-
-function createRoom(serverName, playerName, playerBank) {
-    console.log(`Attempting to create room with name=${serverName}`);
-    socket.emit('create-room', serverName, playerName, playerBank);
-}
-
-function createServer() { //Rename this
-    serverCreateInput.style.display = 'block';
-    playerCreationModel.style.display = 'block';
-}
-
-function initServerSelect() {
-    console.log('requesting room data');
-    socket.emit('request-room-data');
-    document.getElementById('create-room-btn').addEventListener('click', createServer);
-    document.getElementById('server-join-btn').addEventListener('click', joinServer);
-    document.getElementById('server-refresh-btn').addEventListener('click', refreshServers);
-}
+const table = document.getElementById('room-selection-table');
+const modal = document.getElementById('modal-container');
+const roomNameContainer = document.getElementById('room-name-container');
 
 socket.on('send-room-data', (serverRooms) => {
     clientRooms = serverRooms;
     renderTable(table, clientRooms);
 });
 
-function joinServer () {
+document.addEventListener('click', documentClickHandler);
+
+table.addEventListener('click', event => { setSelectedTableRow(table, event); });
+table.addEventListener('dblclick', event => {
+    setSelectedTableRow(table, event);
+    joinPressed();
+});
+
+modal.addEventListener('submit', event => {
+    event.preventDefault();
+    const username = document.getElementById('username-input').value;
+    const bank = document.getElementById('bank-input').value;
+    
+    if(roomNameContainer.style.display === 'none') {
+        joinRoom(username, bank, selectedRoom);
+    } else {
+        const roomName = document.getElementById('room-name-input').value;
+        createRoom(roomName, username, bank);
+    }
+        
+    roomNameContainer.style.display = 'none';
+    modal.style.display = 'none';
+});
+
+modal.querySelector('#cancel-btn').addEventListener('click', event => {
+    modal.querySelectorAll('input').forEach((input) => {
+        input.value = '';
+    })
+    roomNameContainer.style.display = 'none';
+    modal.style.display = 'none';
+});
+
+
+modal.style.display = 'none';
+initRoomSelect(table);
+
+function documentClickHandler(event) {
+    const target = event.target;
+    if (target.tagName.toLowerCase() === 'button' || modal.style.display === 'block') {
+        return;
+    }
+
+    if (!target.closest('#room-selection-table')) {
+        const selectedRow = document.querySelector('#table-row-selected');
+        if (selectedRow) {
+            selectedRow.removeAttribute('id');
+        }
+    }
+}
+
+function initRoomSelect() {
+    console.log('requesting room data');
+    socket.emit('request-room-data');
+    document.getElementById('create-room-btn').addEventListener('click', createPressed);
+    document.getElementById('join-btn').addEventListener('click', joinPressed);
+    document.getElementById('refresh-btn').addEventListener('click', refreshPressed);
+}
+
+function createPressed() {
+    console.log('Activating room/player creation modal');
+    roomNameContainer.style.display = 'flex';
+    modal.style.display = 'block';
+}
+
+function joinPressed () {
     const selectedRow = table.querySelector('#table-row-selected');
     let roomId = null;
     
     if(!selectedRow) {
-        console.log('ERR: User has not selected a server');
+        console.log('ERR: User has not selected a room');
         return;
     }
 
@@ -105,7 +94,18 @@ function joinServer () {
 
     console.log('Activating player creation modal');
     selectedRoom = selectedRow.dataset.id;
-    playerCreationModel.style.display = 'block';
+    roomNameContainer.style.display = 'none';
+    modal.style.display = 'block';
+}
+
+function refreshPressed() {
+    console.log('requesting room data');
+    socket.emit('request-room-data');
+}
+
+function createRoom(roomName, playerName, playerBank) {
+    console.log(`Attempting to create room with name=${roomName}`);
+    socket.emit('create-room', roomName, playerName, playerBank);
 }
 
 function joinRoom(playerName, playerBank, roomId) {
@@ -114,19 +114,13 @@ function joinRoom(playerName, playerBank, roomId) {
 }
 
 function renderTable(table, rooms = null) {
-/*
-    serverName: str
-    currentPlayers: num
-    maxPlayers: num
-    private: bool
-*/
     const tbody = table.querySelector('tbody');
     if(!tbody) return;
 
     tbody.innerHTML = '';
 
     if(rooms === null || rooms.length === 0) {
-        tbody.textContent = 'No servers';
+        tbody.textContent = 'No rooms avalible';
         return;
     }
 
@@ -145,28 +139,12 @@ function renderTable(table, rooms = null) {
 
         newRow.append(nameCell, playersCell, privateCell);
         
-        console.log(room.avalible); //Need to change to capacity
-        if(room.avalible) {
+        if(room.full) {
             newRow.classList.add('unavalible');
         }
         
         tbody.appendChild(newRow);
     });
-}
-
-function documentClickHandler(event) {
-    const target = event.target;
-    
-    if (target.tagName.toLowerCase() === 'button' || playerCreationModel.style.display === 'block') {
-        return;
-    }
-
-    if (!target.closest('.player-table')) {
-        const selectedRow = document.querySelector('.player-table tbody tr#table-row-selected');
-        if (selectedRow) {
-            selectedRow.removeAttribute('id');
-        }
-    }
 }
 
 function setSelectedTableRow(table, event) {

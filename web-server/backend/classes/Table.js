@@ -23,7 +23,7 @@ class Table {
             'name': this.name,
             'currentPlayers': this.players.length,
             'maxPlayers': this.maxPlayers,
-            'avalible': this.roomAvalible,
+            'full': this.roomAvalible,
             'private': false
         }
     }

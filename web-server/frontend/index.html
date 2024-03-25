@@ -12,18 +12,10 @@
         <p>This is a work in progress build</p>
     </header>
     <main>
-        <!-- <form id="player-form">
-            <label for="username">Name</label>
-            <input type="text" id="username" name="username" value="Dayne" required>
-            <label for="bank">Bank</label>
-            <input type="number" id="bank" name="bank" value="1000" required>
-            <button type="submit">Play</button>
-        </form> -->
-        
-        <div class="server-selection-container">
-            <h3>Server Select</h3>
+        <div class="room-selection-container">
+            <h3>Table Select</h3>
             <div class="table-container border">
-                <table id="server-selection-table" class="player-table">
+                <table id="room-selection-table" class="rooms-table">
                 <thead>
                     <tr> <th>Name</th> <th>Players</th> <th>Private</th> </tr>
                 </thead>
@@ -32,26 +24,26 @@
                 </table>
             </div>
             <button id="create-room-btn">Create Game</button>
-            <button id="server-join-btn">Join Game</button>
-            <button id="server-refresh-btn">Refresh Servers</button>
+            <button id="join-btn">Join Game</button>
+            <button id="refresh-btn">Refresh Servers</button>
         </div>
 
-        <div id="player-create-modal" class="modal">
+        <div id="modal-container" class="modal">
             <div class="modal-content border">
-                <h4>Player Create</h4>
-                <form id="player-form">
-                    <div class="player-input-container">
-                        <div id="server-name-container">
-                            <label for="server-name">Room name</label>
-                            <input type="text" id="create-server" name="server-name">
+                <h4>Create Room</h4>
+                <form id="create-form">
+                    <div class="modal-input-container">
+                        <div id="room-name-container">
+                            <label for="room-name">Room name</label>
+                            <input type="text" id="room-name-input" name="room-name">
                         </div>
                         <div>
-                            <label for="create-username">Name</label>
-                            <input type="text" id="create-username" name="username" value="Dayne" required>
+                            <label for="username">Name</label>
+                            <input type="text" id="username-input" name="username" value="Dayne" required>
                         </div>
                         <div>
-                            <label for="create-bank">Bank</label>
-                            <input type="number" id="create-bank" name="bank" value="1000" required>
+                            <label for="bank">Bank</label>
+                            <input type="number" id="bank-input" name="bank" value="1000" required>
                         </div>
                     </div>
                     <div>
