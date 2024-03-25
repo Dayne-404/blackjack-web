@@ -18,6 +18,12 @@ This is a big step from the prototype build of the game. This step sees the intr
 - express.js  handing server connections
 - socket.io   handling web socket 2 way communication
 - nodemon     to relaunch the server when the code is updated (dev dependency)
+- uuidv4      create unique id's for the room
+
+**Run the project**
+1. from the backend directory run the command "npm install"
+2. npm run dev
+3. on a browser goto localhost:3000
 
 ### blackjack-react 🚀
 
