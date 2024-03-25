@@ -221,6 +221,12 @@ input[type=number]::-webkit-outer-spin-button {
   margin: 0; /* Optional, for some versions of Firefox */
 }
 
+.center {
+  margin: 0 auto;
+  text-align: center;
+  margin-top: 0.5rem;
+}
+
 
 
 

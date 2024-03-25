@@ -77,6 +77,19 @@ io.on('connection', (socket) => {
     io.to(roomId).emit('player-connect', rooms[roomId]);
   });
 
+  socket.on('player-ready', (bet) => {
+    const roomId = socketToRoom[socket.id];
+    
+    if(!rooms[roomId].players[socket.id].ready) {
+      console.log(`\n${socket.id} player is ready`);
+      rooms[roomId].players[socket.id].bet = Number(bet);
+      rooms[roomId].players[socket.id].ready = true;
+      rooms[roomId].playersReady++;
+      socket.emit('ready-recieved');
+      //Check if the room is all ready
+    }
+  });
+
   
   socket.on('disconnect', (reason) => {
     console.log('\nSocket disconnecting: ', socket.id);

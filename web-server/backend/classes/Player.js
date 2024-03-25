@@ -6,6 +6,7 @@ class Player {
         this.bank = bank;
         this.bet = 0;
         this.hand = new Hand();
+        this.ready = false;
     }
 
     toString() {

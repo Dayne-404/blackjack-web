@@ -60,12 +60,19 @@
         <div id="players-container" class="players-container">
             <!-- Players & Dealer will be inserted into this -->
         </div>
-        <h3 id="status-text"></h3>
-        <div id="button-container" class="button-container">
+        <h3 id="status-text">Ready up</h3>
+        <div id="bet-input-container" class="center">
+            <label for="bet">Bet</label>
+            <input type="number" id="bet-input" name="bet" value="100" min="0">
+        </div>
+        <div id="button-container" class="button-container hidden">
             <button id="hit-btn">Hit</button>
             <button id="stay-btn">Stay</button>
             <button id="dbl-down-btn">Double Down</button>
             <button id="split-btn">Split</button>
+        </div>
+        <div class="center">
+            <button id="ready-btn">Ready</button>
         </div>
     </div>
 

@@ -1,8 +1,6 @@
 let selectedRoom = null;
 let socket = null; //Change this later to a better solution
 
-
-
 export function hideAllMenuElements() {
     mainMenu.style.display = 'none';
 }

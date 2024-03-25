@@ -1,3 +1,25 @@
+export function initBlackjack(socket, buttonContainer) {
+    const hitButton = document.getElementById('hit-btn');
+    const stayButton = document.getElementById('stay-btn');
+    const dblDownButton = document.getElementById('dbl-down-btn');
+    const splitButton = document.getElementById('split-btn');
+    const betInput = document.getElementById('bet-input');
+    const readyButton = document.getElementById('ready-btn');
+
+    buttonContainer.style.display = 'none';
+
+    readyButton.addEventListener('click', event => readyPressed(socket, betInput, readyButton)); 
+}
+
+function readyPressed(socket, betInput, readyButton) {
+    if(readyButton.style.display != 'none' || !readyButton.disabled) {
+        let bet = betInput.value;
+        
+        console.log('Sending ready');
+        socket.emit('player-ready', bet);
+    }
+}
+
 export function renderPlayers(container, players, dealer=null) {
     let innerHTML = '';
     
