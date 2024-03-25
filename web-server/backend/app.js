@@ -14,15 +14,17 @@ const io = new Server(server);
 const port = 3000;
 const rootPath = path.join(__dirname, '..');
 
+const { v4: uuidv4 } = require('uuid');
+
 app.use(express.static(rootPath + "/frontend"));
 
 let players = {};
 let rooms = {
-  1: new Table('alpha'),
-  2: new Table('beta'),
-  3: new Table('charlie'),
-  4: new Table('delta'),
-  5: new Table('epsilon')
+  [uuidv4()]: new Table('alpha'),
+  [uuidv4()]: new Table('beta'),
+  [uuidv4()]: new Table('charlie'),
+  [uuidv4()]: new Table('delta'),
+  [uuidv4()]: new Table('epsilon')
 };
 
 app.get('/', (req, res) => {
@@ -48,10 +50,34 @@ io.on('connection', (socket) => {
       simplifiedRooms[roomId] = rooms[roomId].safeFormat();
     }
 
-    console.log(rooms);
-    console.log(simplifiedRooms);
-
     socket.emit('send-room-data', simplifiedRooms);
+  });
+
+  socket.on('create-room', (roomName, playerName, playerBank) => {
+    const roomId = uuidv4();
+    rooms[roomId] = new Table(roomName);
+    rooms[roomId].addPlayer(
+      new Player(socket.id, playerName, playerBank)
+    );
+
+    console.log(`${socket.id} creating room with id: ${roomId}`);
+    console.log(rooms[roomId]);
+  });
+
+  socket.on('join-room', (playerName, playerBank, roomId) => {
+    console.log(`${socket.id} joined room with id: ${roomId}`);
+    
+    if(!roomId in rooms || rooms[roomId].AtCapacity()) {
+      console.log(`${socket.id} unable to join room with id: ${roomId}`);
+      return;
+    }
+    
+    rooms[roomId].addPlayer(
+      new Player(socket.id, playerName, playerBank)
+    );
+    socket.join(roomId);
+
+    console.log(rooms[roomId]);
   });
 
   
@@ -65,7 +91,9 @@ io.on('connection', (socket) => {
   });
 });
 
-
+function sendErrorMessage(message) {
+  socket.emit('send-message', (message));
+}
 
 server.listen(port, () => {
   console.log(`Server is listening on port ${port}`);

@@ -15,9 +15,11 @@
 const socket = io();
 
 let clientRooms = null;
+let selectedRoom = null;
 
 const table = document.getElementById('server-selection-table');
 const playerCreationModel = document.getElementById('player-create-modal');
+const serverCreateInput = document.getElementById('server-name-container');
 
 table.addEventListener('click', event => {
     setSelectedTableRow(table, event);
@@ -25,7 +27,32 @@ table.addEventListener('click', event => {
 
 table.addEventListener('dblclick', event => {
     setSelectedTableRow(table, event);
-    //Send to server
+    joinServer();
+});
+
+playerCreationModel.addEventListener('submit', event => {
+    event.preventDefault();
+    const username = document.getElementById('create-username').value;
+    const bank = document.getElementById('create-bank').value;
+    
+    if(serverCreateInput.style.display === 'none') {
+        joinRoom(username, bank, selectedRoom);
+    } else {
+        const serverName = document.getElementById('create-server').value;
+        createRoom(serverName, username, bank);
+    }
+        
+    serverCreateInput.style.display = 'none';
+    playerCreationModel.style.display = 'none';
+});
+
+playerCreationModel.querySelector('#cancel-btn').addEventListener('click', event => {
+    console.log("Close modal");
+    playerCreationModel.querySelectorAll('input').forEach((input) => {
+        input.value = '';
+    })
+    serverCreateInput.style.display = 'none';
+    playerCreationModel.style.display = 'none';
 });
 
 document.addEventListener('click', documentClickHandler);
@@ -37,9 +64,20 @@ function refreshServers() {
     socket.emit('request-room-data');
 }
 
+function createRoom(serverName, playerName, playerBank) {
+    console.log(`Attempting to create room with name=${serverName}`);
+    socket.emit('create-room', serverName, playerName, playerBank);
+}
+
+function createServer() { //Rename this
+    serverCreateInput.style.display = 'block';
+    playerCreationModel.style.display = 'block';
+}
+
 function initServerSelect() {
     console.log('requesting room data');
     socket.emit('request-room-data');
+    document.getElementById('create-room-btn').addEventListener('click', createServer);
     document.getElementById('server-join-btn').addEventListener('click', joinServer);
     document.getElementById('server-refresh-btn').addEventListener('click', refreshServers);
 }
@@ -48,8 +86,6 @@ socket.on('send-room-data', (serverRooms) => {
     clientRooms = serverRooms;
     renderTable(table, clientRooms);
 });
-
-
 
 function joinServer () {
     const selectedRow = table.querySelector('#table-row-selected');
@@ -64,31 +100,17 @@ function joinServer () {
     
     if(!roomId) {
         console.log('ERR: Room not found unable to join..');
+        return;
     } 
 
     console.log('Activating player creation modal');
+    selectedRoom = selectedRow.dataset.id;
     playerCreationModel.style.display = 'block';
-
-    playerCreationModel.addEventListener('submit', event => {
-        event.preventDefault();
-        const username = document.getElementById('username').value;
-        const bank = document.getElementById('bank').value;
-        joinRoom(username, bank, roomId);
-        playerCreationModel.style.display = 'none';
-    });
-    
-    playerCreationModel.querySelector('#cancel-btn').addEventListener('click', event => {
-        console.log("Close modal");
-        playerCreationModel.querySelectorAll('input').forEach((input) => {
-            input.value = '';
-        })
-        playerCreationModel.style.display = 'none';
-    });
 }
 
 function joinRoom(playerName, playerBank, roomId) {
     console.log(`Attempting to join room with id=${roomId}`);
-    socket.emit('join-room', (roomId));
+    socket.emit('join-room', playerName, playerBank, roomId);
 }
 
 function renderTable(table, rooms = null) {
@@ -123,7 +145,8 @@ function renderTable(table, rooms = null) {
 
         newRow.append(nameCell, playersCell, privateCell);
         
-        if(!room.avalible) {
+        console.log(room.avalible); //Need to change to capacity
+        if(room.avalible) {
             newRow.classList.add('unavalible');
         }
         
@@ -133,6 +156,11 @@ function renderTable(table, rooms = null) {
 
 function documentClickHandler(event) {
     const target = event.target;
+    
+    if (target.tagName.toLowerCase() === 'button' || playerCreationModel.style.display === 'block') {
+        return;
+    }
+
     if (!target.closest('.player-table')) {
         const selectedRow = document.querySelector('.player-table tbody tr#table-row-selected');
         if (selectedRow) {

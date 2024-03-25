@@ -29,7 +29,7 @@ class Table {
     }
 
     AtCapacity() {
-        if(this.players.length < this.maxPlayers)
+        if(this.players.length >= this.maxPlayers)
             return true;
 
         return false;

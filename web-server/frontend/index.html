@@ -41,18 +41,22 @@
                 <h4>Player Create</h4>
                 <form id="player-form">
                     <div class="player-input-container">
-                        <div>
-                            <label for="username">Name</label>
-                            <input type="text" id="username" name="username" value="Dayne" required>
+                        <div id="server-name-container">
+                            <label for="server-name">Room name</label>
+                            <input type="text" id="create-server" name="server-name">
                         </div>
                         <div>
-                            <label for="bank">Bank</label>
-                            <input type="number" id="bank" name="bank" value="1000" required>
+                            <label for="create-username">Name</label>
+                            <input type="text" id="create-username" name="username" value="Dayne" required>
+                        </div>
+                        <div>
+                            <label for="create-bank">Bank</label>
+                            <input type="number" id="create-bank" name="bank" value="1000" required>
                         </div>
                     </div>
                     <div>
                         <button type="submit">Play</button>
-                        <button id="cancel-btn">Cancel</button>
+                        <button type="button" id="cancel-btn">Cancel</button>
                     </div>
                 </form>
             </div>
