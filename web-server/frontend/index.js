@@ -3,35 +3,41 @@ import * as blackjack from "./views/game.js";
 
 const socket = io();
 
-menu.initRoomSelect(socket); //Will come back to make this more readable later
+const mainMenu = document.getElementById('main-menu');
 
+
+const table = document.getElementById('room-selection-table');
+const modal = document.getElementById('modal-container');
+const roomNameContainer = document.getElementById('room-name-container');
+
+const playersContainer = document.getElementById('players-container');
+const statusText = document.getElementById('status-text');
+
+menu.initRoomSelect(socket, mainMenu, table, modal, roomNameContainer); //Will come back to make this more readable later
+
+socket.on('send-room-data', (serverRooms) => {
+    menu.renderTable(table, serverRooms);
+});
 
 socket.on('start-game', (roomData) =>  {
     const gameView = document.getElementById('game-view');
-    const mainMenu = document.getElementById('main-menu');
 
     mainMenu.style.display = 'none';
     gameView.style.display = 'block';
     console.log('Starting game...');
-    renderGame(roomData);
+    blackjack.renderGame(playersContainer, roomData);
 });
 
 socket.on('player-disconnect', (roomData) => {
     console.log('Player disconnected re-rendering window');
-    renderGame(roomData);
+    blackjack.renderGame(playersContainer, roomData);
 });
 
 socket.on('player-connect', (roomData) => {
     console.log('Player joined re-rendering window');
-    renderGame(roomData);
+    blackjack.renderGame(playersContainer, roomData);
 });
 
-function renderGame(roomData) {
-    const playersContainer = document.getElementById('players-container');
 
-    let players = Object.values(roomData.players);
-    let dealer = roomData.dealer;
-    blackjack.renderPlayers(playersContainer, players, dealer);
-}
 
 

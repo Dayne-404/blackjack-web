@@ -1,36 +1,28 @@
-let clientRooms = null;
 let selectedRoom = null;
 let socket = null; //Change this later to a better solution
 
-const mainMenu = document.getElementById('main-menu');
-const table = document.getElementById('room-selection-table');
-const modal = document.getElementById('modal-container');
-const roomNameContainer = document.getElementById('room-name-container');
+
 
 export function hideAllMenuElements() {
     mainMenu.style.display = 'none';
 }
 
-export function initRoomSelect(clientSocket) {
+export function initRoomSelect(clientSocket, menuContainer, table, modal, roomNameContainer) {
     socket = clientSocket;
+    menuContainer.style.display = 'block';
+    modal.style.display = 'none';
     console.log('requesting room data');
     socket.emit('request-room-data');
-    modal.style.display = 'none';
-    document.getElementById('create-room-btn').addEventListener('click', createPressed);
-    document.getElementById('join-btn').addEventListener('click', joinPressed);
+    document.getElementById('create-room-btn').addEventListener('click', event => createPressed(modal, roomNameContainer));
+    document.getElementById('join-btn').addEventListener('click', event => joinPressed(table, modal, roomNameContainer));
     document.getElementById('refresh-btn').addEventListener('click', refreshPressed);
 
-    socket.on('send-room-data', (serverRooms) => {
-        clientRooms = serverRooms;
-        renderTable(table, clientRooms);
-    });
-
-    document.addEventListener('click', documentClickHandler);
+    document.addEventListener('click', event => documentClickHandler(event, table, modal));
 
     table.addEventListener('click', event => { setSelectedTableRow(table, event); });
     table.addEventListener('dblclick', event => {
         setSelectedTableRow(table, event);
-        joinPressed();
+        joinPressed(table, modal, roomNameContainer);
     });
 
     modal.addEventListener('submit', event => {
@@ -58,27 +50,27 @@ export function initRoomSelect(clientSocket) {
     });
 }
 
-function documentClickHandler(event) {
+function documentClickHandler(event, table, modal) {
     const target = event.target;
     if (target.tagName.toLowerCase() === 'button' || modal.style.display === 'block') {
         return;
     }
 
     if (!target.closest('#room-selection-table')) {
-        const selectedRow = document.querySelector('#table-row-selected');
+        const selectedRow = table.querySelector('#table-row-selected');
         if (selectedRow) {
             selectedRow.removeAttribute('id');
         }
     }
 }
 
-function createPressed() {
+function createPressed(modal, roomNameContainer) {
     console.log('Activating room/player creation modal');
     roomNameContainer.style.display = 'flex';
     modal.style.display = 'block';
 }
 
-function joinPressed () {
+function joinPressed (table, modal, roomNameContainer) {
     const selectedRow = table.querySelector('#table-row-selected');
     let roomId = null;
     
@@ -115,7 +107,7 @@ function joinRoom(playerName, playerBank, roomId) {
     socket.emit('join-room', playerName, playerBank, roomId);
 }
 
-function renderTable(table, rooms = null) {
+export function renderTable(table, rooms = null) {
     const tbody = table.querySelector('tbody');
     if(!tbody) return;
 

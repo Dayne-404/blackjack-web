@@ -16,6 +16,12 @@ export function renderPlayer(container, player) {
     container.innerHTML = getPlayerHTML(player);
 }
 
+export function renderGame(playersContainer, roomData) {
+    let players = Object.values(roomData.players);
+    let dealer = roomData.dealer;
+    renderPlayers(playersContainer, players, dealer);
+}
+
 function getPlayerHTML(player) {
     return `
         <div id="${player.name}-card" class="player-card">
