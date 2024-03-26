@@ -2,6 +2,37 @@ class Hand {
     constructor() {
         this.cards = [];
         this.total = this.calculateHandTotal(this.cards);
+        this.state = 0; //0 for 
+    }
+
+    recieveCard(card, hidden = 0) {
+        if(hidden) {
+            card.hidden = hidden;
+        }
+
+        this.cards.push(card);
+        this.total += card.value;
+        this.state = this.getHandState();
+    }
+
+    format() {
+        let formattedCard = '[ ';
+        this.cards.forEach(card => {
+            formattedCard += card.toString() + ', ';
+        })
+        formattedCard += ' ]'
+        console.log(formattedCard);
+        return formattedCard;
+    }
+
+    getHandState() {
+        if(this.total > 21) {
+            return 1;
+        } else if (this.total === 21) {
+            return 2;
+        }
+
+        return 0;
     }
 
     calculateHandTotal(hand) {
@@ -10,10 +41,6 @@ class Hand {
         } 
         
         return 0;
-    }
-
-    test() {
-        console.log('test');
     }
 }
 

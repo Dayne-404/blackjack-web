@@ -7,7 +7,7 @@
     suit that is either passed as 1,2,3, or 4. If the cards hidden
     flag is true than the toString method will return 'hidden'
 */ 
-export default class Card {
+class Card {
     constructor(value, suit, hidden = 0) {
         this.suit = suit;   //1 for spade 2 for diamond 3 for club 4 for heart
         this.value = value; //Value that ranges from 1-13
@@ -46,3 +46,5 @@ export default class Card {
         return `${cardName}${suitName}`;
     }
 }
+
+module.exports = Card;

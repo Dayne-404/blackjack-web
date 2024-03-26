@@ -1,11 +1,13 @@
 const Dealer = require('./Dealer');
+const Deck = require('./Deck');
 
 class Table {
-    constructor(name, maxPlayers = 4, dealer = new Dealer()) {
+    constructor(name, maxPlayers = 4) {
         this.name = name;
         this.maxPlayers = maxPlayers;
         this.players = {};
-        this.dealer = dealer;
+        this.dealer = new Dealer();
+        this.deck = new Deck();
         this.roomAvalible = this.AtCapacity();
 
         this.order =[]; //Have to fix this if players are added
@@ -21,6 +23,13 @@ class Table {
     startRound() {
         console.log("Starting blackjack!");
         this.state = 1; //Means the game is being played
+        
+        this.deck.shuffle();
+        this.order.forEach((id) => {
+            this.players[id].recieveCard(this.deck.takeCard());
+            this.players[id].recieveCard(this.deck.takeCard());
+        });
+
         const socketId = this.order[this.turnIndex];
         const playerName = this.players[socketId].name;
         return [socketId, playerName];
@@ -31,7 +40,6 @@ class Table {
             this.players[socketId] = player;
             this.order.push(socketId);
             this.roomAvalible = this.AtCapacity();
-            console.log(this.order);
         }
         else
             console.log('Table at capacity with id: ', this.id);
@@ -53,6 +61,19 @@ class Table {
             'maxPlayers': this.maxPlayers,
             'full': this.roomAvalible,
             'private': false,
+        };
+    }
+
+    gameFormat() {
+        let formattedPlayers = [];
+        this.order.forEach(key => {
+            formattedPlayers.push(this.players[key].format());
+        });
+        
+        return {
+            'name': this.name,
+            'players': formattedPlayers,
+            'dealer': this.dealer,
         };
     }
 

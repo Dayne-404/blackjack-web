@@ -56,13 +56,13 @@ io.on('connection', (socket) => {
     console.log(rooms[roomId]);
     socket.join(roomId);
     socketToRoom[socket.id] = roomId;
-    socket.emit('start-game', rooms[roomId]);
+    socket.emit('start-game', rooms[roomId].gameFormat());
   });
 
   socket.on('join-room', (playerName, playerBank, roomId) => {
     console.log(`${socket.id} joined room with id: ${roomId}`);
     
-    if(!roomId in rooms || rooms[roomId].AtCapacity()) {
+    if(!roomId in rooms || rooms[roomId].roomAvalible) {
       console.log(`${socket.id} unable to join room with id: ${roomId}`);
       return;
     }
@@ -73,8 +73,8 @@ io.on('connection', (socket) => {
 
     socket.join(roomId);
     socketToRoom[socket.id] = roomId;
-    socket.emit('start-game', rooms[roomId]);
-    io.to(roomId).emit('player-connect', rooms[roomId]);
+    socket.emit('start-game', rooms[roomId].gameFormat());
+    io.to(roomId).emit('player-connect', rooms[roomId].gameFormat());
   });
 
   socket.on('player-ready', (bet) => {
@@ -90,8 +90,10 @@ io.on('connection', (socket) => {
 
       if(room.canStartRound()) {
         let [firstPlayerId, firstPlayerName] = room.startRound();
+        io.to(roomId).emit('render-game', rooms[roomId].gameFormat());
         updateSocketsInRoom(io, roomId, `${firstPlayerName} turn`);
-        console.log(firstPlayerId);
+        io.sockets.sockets.get(firstPlayerId).emit('take-turn');
+        console.log(rooms[roomId].players);
       }
     }
   });

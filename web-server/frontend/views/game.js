@@ -21,6 +21,7 @@ function readyPressed(socket, betInput, readyButton) {
 }
 
 export function renderPlayers(container, players, dealer=null) {
+    console.log(players);
     let innerHTML = '';
     
     for(const player of players) {
@@ -48,8 +49,8 @@ function getPlayerHTML(player) {
     return `
         <div id="${player.name}-card" class="player-card">
                 <h3 id="player-${player.name}">${player.name}</h3>
-                <p id="${player.name}-hand">[ ${player.hand.cards} ]</p>
-                <p id="${player.name}-total">${player.hand.total}</p>
+                <p id="${player.name}-hand">${player.hand}</p>
+                <p id="${player.name}-total">${player.total}</p>
                 <p id="${player.name}-bank">Earnings: ${player.bank}$</p>
                 <p id="${player.name}-bet">Bet: ${player.bet}$</p><br>
         </div>`;

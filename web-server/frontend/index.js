@@ -23,6 +23,7 @@ socket.on('send-room-data', (serverRooms) => {
 
 socket.on('take-turn', () => {
     console.log('take turn!');
+    buttonsContainer.style.display = 'block';
 });
 
 socket.on('starting-round', () => {
@@ -38,6 +39,7 @@ socket.on('start-game', (roomData) =>  {
     mainMenu.style.display = 'none';
     gameView.style.display = 'block';
     console.log('Starting game...');
+    console.log(roomData);
     blackjack.renderGame(playersContainer, roomData);
     blackjack.initBlackjack(socket, buttonsContainer);
 });
@@ -45,7 +47,12 @@ socket.on('start-game', (roomData) =>  {
 socket.on('update-status', message => {
     console.log('update status recieved');
     statusText.innerText = message;
-})
+});
+
+socket.on('render-game', roomData => {
+    console.log('re-rendering window');
+    blackjack.renderGame(playersContainer, roomData);
+});
 
 socket.on('ready-recieved', () => {
     statusText.innerText = "Waiting for players"

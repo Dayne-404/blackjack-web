@@ -9,6 +9,20 @@ class Player {
         this.ready = false;
     }
 
+    format() {
+        return {
+            'name': this.name,
+            'bank': this.bank,
+            'bet': this.bet,
+            'hand': this.hand.format(),
+            'total': this.hand.total
+        }
+    }
+
+    recieveCard(card) {
+        this.hand.recieveCard(card);
+    }
+
     toString() {
         return `id: ${this.id} name: ${this.name} bank: ${this.bank} hand: ${this.hand.toString()}`
     }
