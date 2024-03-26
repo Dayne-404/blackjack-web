@@ -21,7 +21,7 @@ class Card {
         flag is flipped then it will return hidden.
     */
     toString() {
-        if(this.hidden === 1)
+        if(this.hidden === true)
             return `hidden`;
         
         const suitNames = {

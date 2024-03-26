@@ -60,8 +60,8 @@ function getDealerHTML(dealer) {
         return `
         <div id="dealer-card" class="player-card">
                 <h3>Dealer</h3>
-                <p id="dealer-hand">[ ${dealer.hand.cards} ]</p>
-                <p id="dealer-total">${dealer.hand.total}</p>
+                <p id="dealer-hand">${dealer.hand}</p>
+                <p id="dealer-total">${dealer.total}</p>
                 <p id="dealer-bank">Earnings: ${dealer.bank}$</p>
         </div>`;
 }

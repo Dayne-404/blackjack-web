@@ -18,10 +18,9 @@ class Hand {
     format() {
         let formattedCard = '[ ';
         this.cards.forEach(card => {
-            formattedCard += card.toString() + ', ';
+            formattedCard += card.toString() + ' ';
         })
-        formattedCard += ' ]'
-        console.log(formattedCard);
+        formattedCard += ']'
         return formattedCard;
     }
 

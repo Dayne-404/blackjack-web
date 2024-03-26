@@ -18,6 +18,7 @@ const readyButton = document.getElementById('ready-btn');
 menu.initRoomSelect(socket, mainMenu, table, modal, roomNameContainer); //Will come back to make this more readable later
 
 socket.on('send-room-data', (serverRooms) => {
+    console.log(serverRooms);
     menu.renderTable(table, serverRooms);
 });
 
@@ -57,6 +58,8 @@ socket.on('render-game', roomData => {
 socket.on('ready-recieved', () => {
     statusText.innerText = "Waiting for players"
     readyButton.disabled = true;
+    console.log(betInput);
+    betInput.disabled = true;
     readyButton.style.display = 'none';
 });
 

@@ -25,11 +25,13 @@ class Table {
         this.state = 1; //Means the game is being played
         
         this.deck.shuffle();
-        this.order.forEach((id) => {
-            this.players[id].recieveCard(this.deck.takeCard());
-            this.players[id].recieveCard(this.deck.takeCard());
-        });
-
+        for(let i = 0; i < 2; i++) {
+            this.order.forEach((id) => {
+                this.players[id].recieveCard(this.deck.takeCard());
+            });
+            this.dealer.recieveCard(this.deck.takeCard());
+        }
+            
         const socketId = this.order[this.turnIndex];
         const playerName = this.players[socketId].name;
         return [socketId, playerName];
@@ -73,12 +75,12 @@ class Table {
         return {
             'name': this.name,
             'players': formattedPlayers,
-            'dealer': this.dealer,
+            'dealer': this.dealer.format(),
         };
     }
 
     AtCapacity() {
-        if(this.players.length >= this.maxPlayers)
+        if(Object.keys(this.players).length >= this.maxPlayers)
             return true;
 
         return false;

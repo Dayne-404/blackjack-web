@@ -32,10 +32,10 @@ app.get('/', (req, res) => {
 });
 
 io.on('connection', (socket) => {
-  console.log('\nPlayer connected: ', socket.id);
+  console.log('Player connected: ', socket.id);
   
   socket.on('request-room-data', () => {
-    console.log('\nClient asking for room data:', socket.id);
+    console.log('Client asking for room data:', socket.id);
 
     const simplifiedRooms = {};
     for(const roomId in rooms) {
@@ -53,20 +53,18 @@ io.on('connection', (socket) => {
     );
 
     console.log(`${socket.id} creating room with id: ${roomId}`);
-    console.log(rooms[roomId]);
     socket.join(roomId);
     socketToRoom[socket.id] = roomId;
     socket.emit('start-game', rooms[roomId].gameFormat());
   });
 
   socket.on('join-room', (playerName, playerBank, roomId) => {
-    console.log(`${socket.id} joined room with id: ${roomId}`);
-    
     if(!roomId in rooms || rooms[roomId].roomAvalible) {
       console.log(`${socket.id} unable to join room with id: ${roomId}`);
       return;
     }
-    
+
+    console.log(`${socket.id} joined room with id: ${roomId}`);
     rooms[roomId].addPlayer(socket.id,
       new Player(playerName, playerBank)
     );
@@ -82,7 +80,7 @@ io.on('connection', (socket) => {
     const player = rooms[roomId].players[socket.id]
     const room = rooms[roomId];
     if(!player.ready) {
-      console.log(`\n${socket.id} player is ready`);
+      console.log(`${socket.id} player is ready`);
       player.bet = Number(bet);
       player.ready = true;
       room.playersReady++;
@@ -93,13 +91,12 @@ io.on('connection', (socket) => {
         io.to(roomId).emit('render-game', rooms[roomId].gameFormat());
         updateSocketsInRoom(io, roomId, `${firstPlayerName} turn`);
         io.sockets.sockets.get(firstPlayerId).emit('take-turn');
-        console.log(rooms[roomId].players);
       }
     }
   });
 
   socket.on('disconnect', (reason) => {
-    console.log('\nSocket disconnecting: ', socket.id);
+    console.log('Socket disconnecting: ', socket.id);
     
     let roomId = socketToRoom[socket.id];
     if(roomId) {
