@@ -11,6 +11,7 @@ const roomNameContainer = document.getElementById('room-name-container');
 
 const playersContainer = document.getElementById('players-container');
 const buttonsContainer = document.getElementById('button-container');
+const betInput = document.getElementById('bet-input');
 const statusText = document.getElementById('status-text');
 const readyButton = document.getElementById('ready-btn');
 
@@ -18,6 +19,17 @@ menu.initRoomSelect(socket, mainMenu, table, modal, roomNameContainer); //Will c
 
 socket.on('send-room-data', (serverRooms) => {
     menu.renderTable(table, serverRooms);
+});
+
+socket.on('take-turn', () => {
+    console.log('take turn!');
+});
+
+socket.on('starting-round', () => {
+    readyButton.style.display = 'none';
+    readyButton.disabled = true;
+    betInput.disabled = true;
+    console.log('starting round');
 });
 
 socket.on('start-game', (roomData) =>  {
@@ -29,6 +41,11 @@ socket.on('start-game', (roomData) =>  {
     blackjack.renderGame(playersContainer, roomData);
     blackjack.initBlackjack(socket, buttonsContainer);
 });
+
+socket.on('update-status', message => {
+    console.log('update status recieved');
+    statusText.innerText = message;
+})
 
 socket.on('ready-recieved', () => {
     statusText.innerText = "Waiting for players"

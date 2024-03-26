@@ -79,18 +79,23 @@ io.on('connection', (socket) => {
 
   socket.on('player-ready', (bet) => {
     const roomId = socketToRoom[socket.id];
-    
-    if(!rooms[roomId].players[socket.id].ready) {
+    const player = rooms[roomId].players[socket.id]
+    const room = rooms[roomId];
+    if(!player.ready) {
       console.log(`\n${socket.id} player is ready`);
-      rooms[roomId].players[socket.id].bet = Number(bet);
-      rooms[roomId].players[socket.id].ready = true;
-      rooms[roomId].playersReady++;
+      player.bet = Number(bet);
+      player.ready = true;
+      room.playersReady++;
       socket.emit('ready-recieved');
-      //Check if the room is all ready
+
+      if(room.canStartRound()) {
+        let [firstPlayerId, firstPlayerName] = room.startRound();
+        updateSocketsInRoom(io, roomId, `${firstPlayerName} turn`);
+        console.log(firstPlayerId);
+      }
     }
   });
 
-  
   socket.on('disconnect', (reason) => {
     console.log('\nSocket disconnecting: ', socket.id);
     
@@ -101,13 +106,16 @@ io.on('connection', (socket) => {
       delete socketToRoom[socket.id];
       io.to(roomId).emit('player-disconnect', rooms[roomId]);
     }
-
-
-    socket.rooms.forEach(room => {
-      console.log(room);
-    })
   });
 });
+
+function updateSocketsInRoom(io, roomId, message) {
+  io.to(roomId).emit('update-status', message);
+}
+
+function updateSocketStatus(socket, message) {
+  socket.emit('update-status', message);
+}
 
 server.listen(port, () => {
   console.log(`Server is listening on port ${port}`);

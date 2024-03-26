@@ -5,19 +5,25 @@ class Table {
         this.name = name;
         this.maxPlayers = maxPlayers;
         this.players = {};
-        this.order =[]; //Have to fix this if players are added
-        this.turnIndex = 0;
         this.dealer = dealer;
-        this.playersReady = 0;
         this.roomAvalible = this.AtCapacity();
+
+        this.order =[]; //Have to fix this if players are added
+        this.playersReady = 0;
+        this.turnIndex = 0;
+        this.state = 0; //0 for waiting for players to bet and ready up
     }
 
-    canStartGame() {
+    canStartRound() {
         return Object.keys(this.players).length === this.playersReady;
     }
 
-    startGame() {
+    startRound() {
         console.log("Starting blackjack!");
+        this.state = 1; //Means the game is being played
+        const socketId = this.order[this.turnIndex];
+        const playerName = this.players[socketId].name;
+        return [socketId, playerName];
     }
 
     addPlayer(socketId, player) {
