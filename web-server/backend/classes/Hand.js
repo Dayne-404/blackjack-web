@@ -2,7 +2,6 @@ class Hand {
     constructor() {
         this.cards = [];
         this.total = this.calculateHandTotal(this.cards);
-        this.isDoubledDown = false;
         this.isSplit = false;
         this.state = 0; //0 for 
     }

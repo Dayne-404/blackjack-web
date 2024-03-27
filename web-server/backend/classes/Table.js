@@ -84,7 +84,9 @@ class Table {
 
     playerDoubleDown() {
         const playerId = this.getPlayerInTurn();
-        this.players[playerId].hand.isDoubledDown = true;
+        console.log(this.players[playerId]);
+        this.players[playerId].bank -= this.players[playerId].bet;
+        this.players[playerId].bet *= 2;
         this.players[playerId].recieveCard(this.deck.takeCard());
         this.turnIndex++;
         return this.getPlayerInTurn();
@@ -128,8 +130,6 @@ class Table {
             this.order.splice(socketId, 1);
         }
     }
-
-    
 
     safeFormat() {
         return {

@@ -112,8 +112,8 @@ io.on('connection', (socket) => {
             updateSocketsInRoom(io, roomId, `${nextPlayerName} turn`);
             io.sockets.sockets.get(nextPlayerId).emit('take-turn');
           } else {
-            updateSocketsInRoom(io, roomId, `dealer turn`);
-            rooms[roomId].dealerPlay();
+            endRound(io, roomId);
+            setTimeout(() => gotoNextRound(io, roomId), 8000);
           }
         } else {
           updateSocketsInRoom(io, roomId, `${firstPlayerName} turn`);

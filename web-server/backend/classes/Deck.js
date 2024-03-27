@@ -19,6 +19,9 @@ class Deck {
             const j = Math.floor(Math.random() * (i + 1));
             [this.cards[i], this.cards[j]] = [this.cards[j], this.cards[i]];
         }
+
+        this.cards[0] = new Card(1, 1);
+        this.cards[2] = new Card(10, 1);
     }
 
     takeCard() {
