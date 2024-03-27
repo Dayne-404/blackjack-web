@@ -2,6 +2,8 @@ class Hand {
     constructor() {
         this.cards = [];
         this.total = this.calculateHandTotal(this.cards);
+        this.isDoubledDown = false;
+        this.isSplit = false;
         this.state = 0; //0 for 
     }
 
@@ -11,8 +13,18 @@ class Hand {
         }
 
         this.cards.push(card);
-        this.total += card.value;
+        this.total += this.getBlackjackCardValue(card);
         this.state = this.getHandState();
+    }
+
+    getBlackjackCardValue(card) {
+        if(card.value > 10) {
+            return 10;
+        } else if (card.value === 1 && (this.total + 11) < 22) {
+            return 11;
+        }
+
+        return card.value;
     }
 
     format() {

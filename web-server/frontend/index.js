@@ -15,6 +15,11 @@ const betInput = document.getElementById('bet-input');
 const statusText = document.getElementById('status-text');
 const readyButton = document.getElementById('ready-btn');
 
+const hitButton = document.getElementById('hit-btn');
+const stayButton = document.getElementById('stay-btn');
+const dblDownButton = document.getElementById('dbl-down-btn');
+const splitButton = document.getElementById('split-btn');
+
 menu.initRoomSelect(socket, mainMenu, table, modal, roomNameContainer); //Will come back to make this more readable later
 
 socket.on('send-room-data', (serverRooms) => {
@@ -24,7 +29,24 @@ socket.on('send-room-data', (serverRooms) => {
 
 socket.on('take-turn', () => {
     console.log('take turn!');
-    buttonsContainer.style.display = 'block';
+    enableGameButtons();
+});
+
+socket.on('first-turn-over', () => {
+    dblDownButton.disabled = true;
+    splitButton.disabled = true;
+});
+
+hitButton.addEventListener('click', () => {
+    socket.emit('blackjack-action', 'hit');
+});
+
+stayButton.addEventListener('click', () => {
+    socket.emit('blackjack-action', 'stay');
+});
+
+dblDownButton.addEventListener('click', () => {
+    socket.emit('blackjack-action', 'dbl-down');
 });
 
 socket.on('starting-round', () => {
@@ -32,6 +54,11 @@ socket.on('starting-round', () => {
     readyButton.disabled = true;
     betInput.disabled = true;
     console.log('starting round');
+});
+
+socket.on('end-turn', () => {
+    console.log('turn ended');
+    disableGameButtons();
 });
 
 socket.on('start-game', (roomData) =>  {
@@ -72,6 +99,31 @@ socket.on('player-connect', (roomData) => {
     console.log('Player joined re-rendering window');
     blackjack.renderGame(playersContainer, roomData);
 });
+
+socket.on('new-round', (roomData) => {
+    console.log('new round!');
+    betInput.value = '';
+    betInput.disabled = false;
+    readyButton.style.display = 'inline';
+    readyButton.disabled = false;
+    blackjack.renderGame(playersContainer, roomData);
+});
+
+function disableGameButtons() {
+    buttonsContainer.style.display = 'none';
+    hitButton.disabled = true;
+    stayButton.disabled = true;
+    dblDownButton.disabled = true;
+    splitButton.disabled = true;
+}
+
+function enableGameButtons() {
+    buttonsContainer.style.display = 'block'
+    hitButton.disabled = false;
+    stayButton.disabled = false;
+    dblDownButton.disabled = false;
+    splitButton.disabled = false;
+}
 
 
 

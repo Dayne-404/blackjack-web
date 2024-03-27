@@ -7,6 +7,9 @@ class Player {
         this.bet = 0;
         this.hand = new Hand();
         this.ready = false;
+        
+        this.winModifier = 0;
+        this.push = false;
     }
 
     format() {
@@ -17,6 +20,22 @@ class Player {
             'hand': this.hand.format(),
             'total': this.hand.total
         }
+    }
+
+    reset() {
+        this.hand = new Hand();
+        this.ready = false;
+
+        if(this.push) {
+            this.push = false;
+        } else {
+            this.bet = 0;
+        }
+    }
+
+    setBet(bet) {
+        this.bet = bet;
+        this.bank -= bet;
     }
 
     recieveCard(card) {

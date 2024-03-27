@@ -1,5 +1,6 @@
 const Player = require('./classes/Player');
 const Table = require('./classes/Table');
+const getWinCondition = require('./helper/winConditions');
 
 const express = require('express');
 const app = express();
@@ -32,11 +33,7 @@ app.get('/', (req, res) => {
 });
 
 io.on('connection', (socket) => {
-  console.log('Player connected: ', socket.id);
-  
   socket.on('request-room-data', () => {
-    console.log('Client asking for room data:', socket.id);
-
     const simplifiedRooms = {};
     for(const roomId in rooms) {
       simplifiedRooms[roomId] = rooms[roomId].safeFormat();
@@ -52,19 +49,38 @@ io.on('connection', (socket) => {
       new Player(playerName, playerBank)
     );
 
-    console.log(`${socket.id} creating room with id: ${roomId}`);
     socket.join(roomId);
     socketToRoom[socket.id] = roomId;
     socket.emit('start-game', rooms[roomId].gameFormat());
   });
 
+  socket.on('blackjack-action', action => {
+    const roomId = socketToRoom[socket.id];
+    const currentPlayer = rooms[roomId].getPlayerInTurn();
+    
+    if(socket.id === currentPlayer) {
+      let nextPlayer = playerTurn(socket, roomId, currentPlayer, action);
+      io.to(roomId).emit('render-game', rooms[roomId].gameFormat());
+
+      if(!nextPlayer) {
+        socket.emit('end-turn');
+        endRound(io, roomId);
+        setTimeout(() => gotoNextRound(io, roomId), 8000);
+      } else if (currentPlayer != nextPlayer) {
+        socket.emit('end-turn');
+        updateSocketsInRoom(io, roomId, rooms[roomId].players[nextPlayer].name + ' turn');
+        io.sockets.sockets.get(nextPlayer).emit('take-turn');
+      }
+    }
+  });
+
   socket.on('join-room', (playerName, playerBank, roomId) => {
-    if(!roomId in rooms || rooms[roomId].roomAvalible) {
-      console.log(`${socket.id} unable to join room with id: ${roomId}`);
+    if(!roomId in rooms) {
+      return;
+    } else if(rooms[roomId].roomAvalible) {
       return;
     }
 
-    console.log(`${socket.id} joined room with id: ${roomId}`);
     rooms[roomId].addPlayer(socket.id,
       new Player(playerName, playerBank)
     );
@@ -80,8 +96,7 @@ io.on('connection', (socket) => {
     const player = rooms[roomId].players[socket.id]
     const room = rooms[roomId];
     if(!player.ready) {
-      console.log(`${socket.id} player is ready`);
-      player.bet = Number(bet);
+      player.setBet(Number(bet));
       player.ready = true;
       room.playersReady++;
       socket.emit('ready-recieved');
@@ -89,24 +104,71 @@ io.on('connection', (socket) => {
       if(room.canStartRound()) {
         let [firstPlayerId, firstPlayerName] = room.startRound();
         io.to(roomId).emit('render-game', rooms[roomId].gameFormat());
-        updateSocketsInRoom(io, roomId, `${firstPlayerName} turn`);
-        io.sockets.sockets.get(firstPlayerId).emit('take-turn');
+        
+        if(rooms[roomId].isPlayerBlackjack()) {
+          let nextPlayerId = rooms[roomId].playerStay();
+          if(nextPlayerId) {
+            let nextPlayerName = rooms[roomId].players[nextPlayerId].name;
+            updateSocketsInRoom(io, roomId, `${nextPlayerName} turn`);
+            io.sockets.sockets.get(nextPlayerId).emit('take-turn');
+          } else {
+            updateSocketsInRoom(io, roomId, `dealer turn`);
+            rooms[roomId].dealerPlay();
+          }
+        } else {
+          updateSocketsInRoom(io, roomId, `${firstPlayerName} turn`);
+          io.sockets.sockets.get(firstPlayerId).emit('take-turn');
+        }
       }
     }
   });
 
   socket.on('disconnect', (reason) => {
-    console.log('Socket disconnecting: ', socket.id);
-    
     let roomId = socketToRoom[socket.id];
     if(roomId) {
-      console.log('Socket was part of room: ', roomId)
       delete rooms[roomId].removePlayer(socket.id);
       delete socketToRoom[socket.id];
-      io.to(roomId).emit('player-disconnect', rooms[roomId]);
+      io.to(roomId).emit('render-game', rooms[roomId].gameFormat());
     }
   });
 });
+
+function endRound(io, roomId) {
+  updateSocketsInRoom(io, roomId, 'Dealers turn');
+  rooms[roomId].dealerPlay();
+  const socketWinConditions = rooms[roomId].endRound();
+  
+  for(const [socketId, winCondition] of Object.entries(socketWinConditions)) {
+    updateSocketStatus(io.sockets.sockets.get(socketId), winCondition);
+  }
+
+  io.to(roomId).emit('render-game', rooms[roomId].gameFormat());
+}
+
+function gotoNextRound(io, roomId) {
+  rooms[roomId].nextRound();
+  io.to(roomId).emit('new-round', rooms[roomId].gameFormat());
+  updateSocketsInRoom(io, roomId, 'Ready up');
+}
+
+function playerTurn(socket, roomId, currentPlayer, action) {  
+  if(action === 'hit') {
+    socket.emit('first-turn-over');
+    let nextPlayer = rooms[roomId].playerHit();
+
+    if(nextPlayer && currentPlayer === nextPlayer && rooms[roomId].isPlayerBlackjack()) {
+      return rooms[roomId].playerStay();
+    }
+
+    return nextPlayer;
+  } else if (action === 'stay') {
+    return rooms[roomId].playerStay();
+  } else if (action === 'dbl-down') {         //Add a first round check
+    return rooms[roomId].playerDoubleDown();
+  }
+
+  return null;
+}
 
 function updateSocketsInRoom(io, roomId, message) {
   io.to(roomId).emit('update-status', message);

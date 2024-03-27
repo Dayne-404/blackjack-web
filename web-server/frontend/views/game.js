@@ -1,8 +1,4 @@
 export function initBlackjack(socket, buttonContainer) {
-    const hitButton = document.getElementById('hit-btn');
-    const stayButton = document.getElementById('stay-btn');
-    const dblDownButton = document.getElementById('dbl-down-btn');
-    const splitButton = document.getElementById('split-btn');
     const betInput = document.getElementById('bet-input');
     const readyButton = document.getElementById('ready-btn');
 

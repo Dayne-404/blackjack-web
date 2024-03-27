@@ -1,3 +1,4 @@
+const getWinCondition = require('../helper/winConditions');
 const Dealer = require('./Dealer');
 const Deck = require('./Deck');
 
@@ -16,12 +17,22 @@ class Table {
         this.state = 0; //0 for waiting for players to bet and ready up
     }
 
+    nextRound() {
+        this.state = 0;
+        this.turnIndex = 0;
+        this.playersReady = 0;
+        this.dealer.reset();
+        this.order.forEach(id => {
+            this.players[id].reset();
+        });
+        this.deck.shuffle();
+    }
+
     canStartRound() {
         return Object.keys(this.players).length === this.playersReady;
     }
 
     startRound() {
-        console.log("Starting blackjack!");
         this.state = 1; //Means the game is being played
         
         this.deck.shuffle();
@@ -31,10 +42,74 @@ class Table {
             });
             this.dealer.recieveCard(this.deck.takeCard());
         }
-            
+        
         const socketId = this.order[this.turnIndex];
         const playerName = this.players[socketId].name;
         return [socketId, playerName];
+    }
+
+    endRound() {
+        let playersWinType = {};
+        this.order.forEach(id => {
+            let [winCondition, winModifier, push] = getWinCondition (
+                this.players[id].hand.state,
+                this.players[id].hand.total,
+                this.dealer.hand.state,
+                this.dealer.hand.total
+            );
+
+            this.players[id].push = push;
+
+            if(!push) {
+                this.players[id].bet = this.players[id].bet * winModifier;
+                this.players[id].bank +=  this.players[id].bet;
+            }
+                
+            playersWinType[id] = winCondition;
+        });
+
+        return playersWinType;
+    }
+
+    playerHit() {
+        const playerId = this.getPlayerInTurn()
+        this.players[playerId].recieveCard(this.deck.takeCard());
+
+        if(this.players[playerId].hand.state > 0) {
+            this.turnIndex++;
+        }
+
+        return this.getPlayerInTurn();
+    }
+
+    playerDoubleDown() {
+        const playerId = this.getPlayerInTurn();
+        this.players[playerId].hand.isDoubledDown = true;
+        this.players[playerId].recieveCard(this.deck.takeCard());
+        this.turnIndex++;
+        return this.getPlayerInTurn();
+    }
+
+    playerStay() {
+        this.turnIndex++;
+        return this.getPlayerInTurn();
+    }
+
+    isPlayerBlackjack() {
+        const playerId = this.getPlayerInTurn();
+        return this.players[playerId].hand.state;
+    }
+
+    dealerPlay() {
+        this.dealer.revealHand();
+
+        while(this.dealer.hand.total < 17 && this.dealer.hand.state === 0) {
+            this.dealer.recieveCard(this.deck.takeCard());
+        }
+    }
+
+    getPlayerInTurn() {
+        return this.order[this.turnIndex];
     }
 
     addPlayer(socketId, player) {
@@ -43,8 +118,6 @@ class Table {
             this.order.push(socketId);
             this.roomAvalible = this.AtCapacity();
         }
-        else
-            console.log('Table at capacity with id: ', this.id);
     }
 
     removePlayer(socketId) {
@@ -55,6 +128,8 @@ class Table {
             this.order.splice(socketId, 1);
         }
     }
+
+    
 
     safeFormat() {
         return {
