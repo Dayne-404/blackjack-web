@@ -2,7 +2,7 @@ Web server to do list
 
 [x] Fix double down
 [x] Carrying bet to next round
-[] Disconnect System
+[x] Disconnect System
 [] Queue System
 [] Split System
 

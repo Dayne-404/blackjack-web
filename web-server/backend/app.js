@@ -81,17 +81,22 @@ io.on('connection', (socket) => {
   socket.on('join-room', (playerName, playerBank, roomId) => {
     if(!roomId in rooms) {
       return;
-    } else if(rooms[roomId].roomAvalible) {
+    } else if(rooms[roomId].full) {
       return;
     }
 
-    rooms[roomId].addPlayer(socket.id,
-      new Player(playerName, playerBank)
-    );
+    const newPlayer = new Player(playerName, playerBank);
 
+    if(rooms[roomId].state === 1) {
+      rooms[roomId].addPlayerToQueue(socket.id, newPlayer);
+      socket.emit('joined-queue', rooms[roomId].gameFormat());
+    } else {
+      rooms[roomId].addPlayer(socket.id, newPlayer);
+      socket.emit('start-game', rooms[roomId].gameFormat());
+    }
+    
     socket.join(roomId);
     socketToRoom[socket.id] = roomId;
-    socket.emit('start-game', rooms[roomId].gameFormat());
     io.to(roomId).emit('player-connect', rooms[roomId].gameFormat());
   });
 
@@ -121,7 +126,12 @@ io.on('connection', (socket) => {
       const nextPlayerId = rooms[roomId].removePlayer(socket.id);
       delete socketToRoom[socket.id];
       
-      if(rooms[roomId].order.length === 0) {
+      if(rooms[roomId].order.length === 0 && rooms[roomId].queue.length > 0) {
+        console.log('Ending game early', roomId);
+        endRound(io, roomId);
+        setTimeout(() => gotoNextRound(io, roomId), 8000);
+        return;
+      } else if(rooms[roomId].order.length === 0 && rooms[roomId].queue.length === 0) {
         console.log('deleting room: ', roomId);
         delete rooms[roomId];
         return;
@@ -190,6 +200,7 @@ function gotoNextRound(io, roomId) {
     return;
   
   rooms[roomId].nextRound();
+  rooms[roomId].moveFromQueueToGame();
   io.to(roomId).emit('new-round', rooms[roomId].gameFormat());
   rooms[roomId].order.forEach(socketID => {
     console.log(rooms[roomId].players[socketID]);

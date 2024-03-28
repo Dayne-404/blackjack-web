@@ -9,12 +9,13 @@ class Table {
         this.players = {};
         this.dealer = new Dealer();
         this.deck = new Deck();
-        this.roomAvalible = this.AtCapacity();
+        this.full = this.AtCapacity();
 
         this.order =[]; //Have to fix this if players are added
         this.playersReady = 0;
         this.turnIndex = 0;
         this.state = 0; //0 for waiting for players to bet and ready up
+        this.queue = [];
     }
 
     nextRound() {
@@ -63,8 +64,13 @@ class Table {
             this.players[id].push = push;
 
             if(!push) {
-                this.players[id].bet = this.players[id].bet * winModifier;
-                this.players[id].bank +=  this.players[id].bet;
+                if(winModifier === 0) {
+                    console.log('adding to dealer bank');
+                    this.dealer.bank += this.players[id].bet;
+                } else {
+                    this.players[id].bet = this.players[id].bet * winModifier;
+                    this.players[id].bank += this.players[id].bet;
+                }
             }
                 
             playersWinType[id] = winCondition;
@@ -117,28 +123,52 @@ class Table {
     }
 
     addPlayer(socketId, player) {
-        if(!this.AtCapacity()) {
+        if(!this.full) {
             this.players[socketId] = player;
             this.order.push(socketId);
-            this.roomAvalible = this.AtCapacity();
+            this.full = this.AtCapacity();
         }
     }
 
-    removePlayer(socketId) {
-        console.log('BEFORE DELETION');
-        console.log('turnIndex: ', this.turnIndex);
-        console.log('order: ', this.order);
-        console.log('players', this.players);
+    addPlayerToQueue(socketId, player) {
+        console.log('Adding player to queue');
+        if(!this.full) {
+            this.players[socketId] = player;
+            this.queue.push(socketId);
+            this.full = this.AtCapacity();
+            console.log('players: ', this.players);
+            console.log('queue: ', this.queue);
+        }
+    }
+
+    moveFromQueueToGame() {
+        console.log(this.queue);
+        console.log(this.queue.length);
+        console.log('Moving players from queue to game');
+        while (this.queue.length > 0) {
+            this.order.push(this.queue.shift());
+        }
         
+
+        console.log(this.queue);
+    }
+
+    removePlayer(socketId) {
+        console.log(this.players);
+        const removeIndex = this.order.indexOf(socketId);
+
+        if(this.queue.includes(socketId) && removeIndex > -1) {
+            this.queue.splice(removeIndex, 1);
+            delete this.players[socketId];
+            return this.getPlayerInTurn();
+        }
+
         if(this.players[socketId].ready) {
             this.playersReady--;
         }
         
         this.dealer.bank += this.players[socketId].bet;
         delete this.players[socketId];
-        const removeIndex = this.order.indexOf(socketId); //Index of player being removed
-
-        console.log('index to remove: ', removeIndex);
         
         if(this.turnIndex && removeIndex < this.turnIndex) {
             this.turnIndex--;
@@ -148,10 +178,6 @@ class Table {
             this.order.splice(removeIndex, 1);
         }
 
-        console.log('AFTER DELETION');
-        console.log('turnIndex: ', this.turnIndex);
-        console.log('order: ', this.order);
-        console.log('players', this.players);
         return this.getPlayerInTurn();
     }
 

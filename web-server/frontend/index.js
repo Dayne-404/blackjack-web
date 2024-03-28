@@ -11,6 +11,7 @@ const roomNameContainer = document.getElementById('room-name-container');
 
 const playersContainer = document.getElementById('players-container');
 const buttonsContainer = document.getElementById('button-container');
+const betInputContainer = document.getElementById('bet-input-container');
 const betInput = document.getElementById('bet-input');
 const statusText = document.getElementById('status-text');
 const readyButton = document.getElementById('ready-btn');
@@ -64,14 +65,23 @@ socket.on('end-turn', () => {
 });
 
 socket.on('start-game', (roomData) =>  {
-    console.log('starting game!');
+    console.log('Starting game!');
     const gameView = document.getElementById('game-view');
     mainMenu.style.display = 'none';
     gameView.style.display = 'block';
-    console.log('Starting game...');
-    console.log(roomData);
     blackjack.renderGame(playersContainer, roomData);
     blackjack.initBlackjack(socket, buttonsContainer);
+});
+
+socket.on('joined-queue', (roomData) => {
+    console.log('Added to queue');
+    const gameView = document.getElementById('game-view');
+    mainMenu.style.display = 'none';
+    gameView.style.display = 'block';
+    blackjack.renderGame(playersContainer, roomData);
+    blackjack.initBlackjack(socket, buttonsContainer);
+    disableBetInputContainer();
+    statusText.innerText = "Joined queue";
 });
 
 socket.on('update-status', message => {
@@ -105,10 +115,7 @@ socket.on('player-connect', (roomData) => {
 
 socket.on('new-round', (roomData) => {
     console.log('new round!');
-    betInput.value = '';
-    betInput.disabled = false;
-    readyButton.style.display = 'inline';
-    readyButton.disabled = false;
+    enableBetInputContainer();
     blackjack.renderGame(playersContainer, roomData);
 });
 
@@ -116,6 +123,21 @@ socket.on('disable-bet-input', () => {
     console.log('disabling bet input');
     betInput.disabled = true;
 });
+
+function enableBetInputContainer() {
+    readyButton.disabled = false;
+    readyButton.style.display = 'inline'
+    betInput.disabled = false;
+    betInputContainer.style.display = 'block';
+    betInput.value = '';
+}
+    
+function disableBetInputContainer() {
+    readyButton.disabled = true;
+    readyButton.style.display = 'none'
+    betInput.disabled = true;
+    betInputContainer.style.display = 'none';
+}
     
 function disableGameButtons() {
     buttonsContainer.style.display = 'none';
