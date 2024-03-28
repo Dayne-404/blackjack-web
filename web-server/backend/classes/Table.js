@@ -29,7 +29,9 @@ class Table {
     }
 
     canStartRound() {
-        return Object.keys(this.players).length === this.playersReady;
+        return Object.keys(this.players).length > 0 &&
+            Object.keys(this.players).length === this.playersReady &&
+            this.state === 0; 
     }
 
     startRound() {
@@ -123,12 +125,34 @@ class Table {
     }
 
     removePlayer(socketId) {
-        delete this.players[socketId];
-        const removeIndex = this.order.indexOf(socketId);
-
-        if(removeIndex > -1) {
-            this.order.splice(socketId, 1);
+        console.log('BEFORE DELETION');
+        console.log('turnIndex: ', this.turnIndex);
+        console.log('order: ', this.order);
+        console.log('players', this.players);
+        
+        if(this.players[socketId].ready) {
+            this.playersReady--;
         }
+        
+        this.dealer.bank += this.players[socketId].bet;
+        delete this.players[socketId];
+        const removeIndex = this.order.indexOf(socketId); //Index of player being removed
+
+        console.log('index to remove: ', removeIndex);
+        
+        if(this.turnIndex && removeIndex < this.turnIndex) {
+            this.turnIndex--;
+        }
+        
+        if(removeIndex > -1) {
+            this.order.splice(removeIndex, 1);
+        }
+
+        console.log('AFTER DELETION');
+        console.log('turnIndex: ', this.turnIndex);
+        console.log('order: ', this.order);
+        console.log('players', this.players);
+        return this.getPlayerInTurn();
     }
 
     safeFormat() {

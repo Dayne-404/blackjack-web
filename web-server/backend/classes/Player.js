@@ -7,8 +7,6 @@ class Player {
         this.bet = 0;
         this.hand = new Hand();
         this.ready = false;
-        
-        this.winModifier = 0;
         this.push = false;
     }
 
@@ -18,7 +16,7 @@ class Player {
             'bank': this.bank,
             'bet': this.bet,
             'hand': this.hand.format(),
-            'total': this.hand.total
+            'total': this.hand.total,
         }
     }
 
@@ -26,14 +24,28 @@ class Player {
         this.hand = new Hand();
         this.ready = false;
 
-        if(this.push) {
-            this.push = false;
-        } else {
+        if(!this.push) {
             this.bet = 0;
         }
     }
 
+    canDoubleDown() {
+        if(this.hand.cards.length === 2) {
+            return true;
+        }
+
+        return false;
+    }
+
+    resetPush() {
+        this.push = false;
+    }
+
     setBet(bet) {
+        if(this.bet != 0) {
+            return;
+        }
+            
         this.bet = bet;
         this.bank -= bet;
     }

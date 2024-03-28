@@ -33,6 +33,7 @@ socket.on('take-turn', () => {
 });
 
 socket.on('first-turn-over', () => {
+    console.log('first-turn-over');
     dblDownButton.disabled = true;
     splitButton.disabled = true;
 });
@@ -50,6 +51,7 @@ dblDownButton.addEventListener('click', () => {
 });
 
 socket.on('starting-round', () => {
+    console.log('starting round!');
     readyButton.style.display = 'none';
     readyButton.disabled = true;
     betInput.disabled = true;
@@ -62,8 +64,8 @@ socket.on('end-turn', () => {
 });
 
 socket.on('start-game', (roomData) =>  {
+    console.log('starting game!');
     const gameView = document.getElementById('game-view');
-
     mainMenu.style.display = 'none';
     gameView.style.display = 'block';
     console.log('Starting game...');
@@ -83,6 +85,7 @@ socket.on('render-game', roomData => {
 });
 
 socket.on('ready-recieved', () => {
+    console.log('ready recieved!');
     statusText.innerText = "Waiting for players"
     readyButton.disabled = true;
     console.log(betInput);
@@ -109,6 +112,11 @@ socket.on('new-round', (roomData) => {
     blackjack.renderGame(playersContainer, roomData);
 });
 
+socket.on('disable-bet-input', () => {
+    console.log('disabling bet input');
+    betInput.disabled = true;
+});
+    
 function disableGameButtons() {
     buttonsContainer.style.display = 'none';
     hitButton.disabled = true;

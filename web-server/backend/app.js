@@ -59,6 +59,10 @@ io.on('connection', (socket) => {
     const currentPlayer = rooms[roomId].getPlayerInTurn();
     
     if(socket.id === currentPlayer) {
+      if(!validAction(action, rooms[roomId].players[currentPlayer])) {
+        return;
+      }
+
       let nextPlayer = playerTurn(socket, roomId, currentPlayer, action);
       io.to(roomId).emit('render-game', rooms[roomId].gameFormat());
 
@@ -101,37 +105,63 @@ io.on('connection', (socket) => {
       room.playersReady++;
       socket.emit('ready-recieved');
 
-      if(room.canStartRound()) {
-        let [firstPlayerId, firstPlayerName] = room.startRound();
-        io.to(roomId).emit('render-game', rooms[roomId].gameFormat());
-        
-        if(rooms[roomId].isPlayerBlackjack()) {
-          let nextPlayerId = rooms[roomId].playerStay();
-          if(nextPlayerId) {
-            let nextPlayerName = rooms[roomId].players[nextPlayerId].name;
-            updateSocketsInRoom(io, roomId, `${nextPlayerName} turn`);
-            io.sockets.sockets.get(nextPlayerId).emit('take-turn');
-          } else {
-            endRound(io, roomId);
-            setTimeout(() => gotoNextRound(io, roomId), 8000);
-          }
-        } else {
-          updateSocketsInRoom(io, roomId, `${firstPlayerName} turn`);
-          io.sockets.sockets.get(firstPlayerId).emit('take-turn');
-        }
+      //Start Game Function
+      if(rooms[roomId].canStartRound()) {
+        startBlackjack(io, roomId);
       }
     }
   });
 
   socket.on('disconnect', (reason) => {
+    console.log(`${socket.id} disconnected`);
     let roomId = socketToRoom[socket.id];
     if(roomId) {
-      delete rooms[roomId].removePlayer(socket.id);
+      console.log(`${socket.id} was part of ${roomId}`);
+      
+      const nextPlayerId = rooms[roomId].removePlayer(socket.id);
       delete socketToRoom[socket.id];
+      
+      if(rooms[roomId].order.length === 0) {
+        console.log('deleting room: ', roomId);
+        delete rooms[roomId];
+        return;
+      }
+      
       io.to(roomId).emit('render-game', rooms[roomId].gameFormat());
+      if(rooms[roomId].canStartRound()) {
+        startBlackjack(io, roomId);
+      } else if (rooms[roomId].state === 1) {
+        if(nextPlayerId) {
+          io.sockets.sockets.get(nextPlayerId).emit('take-turn');
+        } else {
+          endRound(io, roomId);
+          setTimeout(() => gotoNextRound(io, roomId), 8000);
+        }
+      }
     }
   });
 });
+
+function startBlackjack(io, roomId) {
+  const room = rooms[roomId];
+  let [firstPlayerId, firstPlayerName] = room.startRound();
+  io.to(roomId).emit('render-game', rooms[roomId].gameFormat());
+  
+  if(rooms[roomId].isPlayerBlackjack()) {
+    let nextPlayerId = rooms[roomId].playerStay();
+    if(nextPlayerId) {
+      const nextPlayerName = rooms[roomId].players[nextPlayerId].name;
+      updateSocketsInRoom(io, roomId, `${nextPlayerName} turn`);
+      io.sockets.sockets.get(nextPlayerId).emit('take-turn');
+    } else {
+      endRound(io, roomId);
+      setTimeout(() => gotoNextRound(io, roomId), 8000);
+    }
+  } else {
+    updateSocketsInRoom(io, roomId, `${firstPlayerName} turn`);
+    io.sockets.sockets.get(firstPlayerId).emit('take-turn');
+  }
+}
 
 function endRound(io, roomId) {
   updateSocketsInRoom(io, roomId, 'Dealers turn');
@@ -145,9 +175,30 @@ function endRound(io, roomId) {
   io.to(roomId).emit('render-game', rooms[roomId].gameFormat());
 }
 
+function validAction(action, player) {
+  console.log('Player action ', action);
+  if(action === 'dbl-down' && !player.canDoubleDown()) {
+    return false;
+  }
+
+  return true;
+  //Add split logic and other valid checks later
+}
+
 function gotoNextRound(io, roomId) {
+  if(!rooms[roomId])
+    return;
+  
   rooms[roomId].nextRound();
   io.to(roomId).emit('new-round', rooms[roomId].gameFormat());
+  rooms[roomId].order.forEach(socketID => {
+    console.log(rooms[roomId].players[socketID]);
+    if(rooms[roomId].players[socketID].bet > 0) {
+      console.log('player is pushed!');
+      rooms[roomId].players[socketID].resetPush();
+      io.sockets.sockets.get(socketID).emit('disable-bet-input');
+    }
+  });
   updateSocketsInRoom(io, roomId, 'Ready up');
 }
 

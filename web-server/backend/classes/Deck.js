@@ -20,8 +20,10 @@ class Deck {
             [this.cards[i], this.cards[j]] = [this.cards[j], this.cards[i]];
         }
 
-        this.cards[0] = new Card(1, 1);
-        this.cards[2] = new Card(10, 1);
+        this.cards[0] = new Card(5, 1);
+        this.cards[1] = new Card(10, 1);    
+        this.cards[2] = new Card(4, 1);
+        this.cards[3] = new Card(7, 1);
     }
 
     takeCard() {

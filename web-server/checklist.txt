@@ -1,0 +1,19 @@
+Web server to do list
+
+[x] Fix double down
+[x] Carrying bet to next round
+[] Disconnect System
+[] Queue System
+[] Split System
+
+[] Room checks (making sure server doesn't crash when error)
+[] Error checks from all sockets
+
+[] Code refactor ;-;
+    [] Helper js file for game functions
+    [] Clean app.js
+
+Stretch Goals
+
+[] Timeout / Disconnect
+[] Time inbetween card pulls
