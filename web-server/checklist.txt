@@ -3,7 +3,8 @@ Web server to do list
 [x] Fix double down
 [x] Carrying bet to next round
 [x] Disconnect System
-[] Queue System
+[x] Queue System (Think I fixed the bugs? maybe?)
+[x] Stop queued players from sending commands...
 [] Split System
 
 [] Room checks (making sure server doesn't crash when error)

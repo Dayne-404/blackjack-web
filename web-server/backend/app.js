@@ -142,6 +142,7 @@ io.on('connection', (socket) => {
         startBlackjack(io, roomId);
       } else if (rooms[roomId].state === 1) {
         if(nextPlayerId) {
+          updateSocketsInRoom(io, roomId, rooms[roomId].players[nextPlayerId].name + ' turn');
           io.sockets.sockets.get(nextPlayerId).emit('take-turn');
         } else {
           endRound(io, roomId);

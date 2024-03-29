@@ -154,14 +154,18 @@ class Table {
     }
 
     removePlayer(socketId) {
-        console.log(this.players);
-        const removeIndex = this.order.indexOf(socketId);
+        let removeIndex = this.queue.indexOf(socketId);
 
         if(this.queue.includes(socketId) && removeIndex > -1) {
+            
+            console.log('Removing player from queue');
             this.queue.splice(removeIndex, 1);
             delete this.players[socketId];
+            this.full = this.AtCapacity();
             return this.getPlayerInTurn();
         }
+
+        removeIndex = this.order.indexOf(socketId);
 
         if(this.players[socketId].ready) {
             this.playersReady--;
@@ -178,6 +182,7 @@ class Table {
             this.order.splice(removeIndex, 1);
         }
 
+        this.full = this.AtCapacity();
         return this.getPlayerInTurn();
     }
 
