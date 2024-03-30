@@ -4,6 +4,7 @@ import * as blackjack from "./views/game.js";
 const socket = io();
 
 const mainMenu = document.getElementById('main-menu');
+const gameView = document.getElementById('game-view');
 
 const table = document.getElementById('room-selection-table');
 const modal = document.getElementById('modal-container');
@@ -21,107 +22,80 @@ const stayButton = document.getElementById('stay-btn');
 const dblDownButton = document.getElementById('dbl-down-btn');
 const splitButton = document.getElementById('split-btn');
 
+//Buttons
+readyButton.addEventListener('click', () => {
+    let bet = betInput.value;
+    socket.emit('player-ready', bet);
+});
+
+hitButton.addEventListener('click', () => socket.emit('play-turn', 'hit'));
+stayButton.addEventListener('click', () => socket.emit('play-turn', 'stay'));
+dblDownButton.addEventListener('click', () => socket.emit('play-turn', 'dbl-down'));
+
+//Main Menu UI Rendering
 menu.initRoomSelect(socket, mainMenu, table, modal, roomNameContainer); //Will come back to make this more readable later
-
-socket.on('send-room-data', (serverRooms) => {
-    console.log(serverRooms);
-    menu.renderTable(table, serverRooms);
+socket.on('send-table-data', (serverRooms) => { 
+    console.log('rendering tables');
+    menu.renderTable(table, serverRooms); 
 });
 
-socket.on('take-turn', () => {
-    console.log('take turn!');
-    enableGameButtons();
-});
+//Game UI Rendering
+socket.on('update-status', message => { statusText.innerText = message; });
+socket.on('render-game', roomData => { blackjack.renderGame(playersContainer, roomData); });
+
+//Changed from disable-bet-input --> pushed
+socket.on('pushed', () => betInput.disabled = true);
+
+socket.on('take-turn', () => { enableGameButtons(); });
+socket.on('end-turn', () => { disableGameButtons(); });
 
 socket.on('first-turn-over', () => {
-    console.log('first-turn-over');
     dblDownButton.disabled = true;
     splitButton.disabled = true;
 });
 
-hitButton.addEventListener('click', () => {
-    socket.emit('blackjack-action', 'hit');
-});
-
-stayButton.addEventListener('click', () => {
-    socket.emit('blackjack-action', 'stay');
-});
-
-dblDownButton.addEventListener('click', () => {
-    socket.emit('blackjack-action', 'dbl-down');
-});
-
-socket.on('starting-round', () => {
-    console.log('starting round!');
+socket.on('starting-round', roomData => {
     readyButton.style.display = 'none';
     readyButton.disabled = true;
     betInput.disabled = true;
+    disableBetInputContainer();
     console.log('starting round');
 });
 
-socket.on('end-turn', () => {
-    console.log('turn ended');
-    disableGameButtons();
-});
-
-socket.on('start-game', (roomData) =>  {
-    const gameView = document.getElementById('game-view');
-    mainMenu.style.display = 'none';
-    gameView.style.display = 'block';
+socket.on('joined-table', (roomData) =>  {
     blackjack.renderGame(playersContainer, roomData);
-    blackjack.initBlackjack(socket, buttonsContainer);
+    buttonsContainer.style.display = 'none';
+    statusText.innerText = "Ready up";
+    enableGameView();
 });
 
 socket.on('joined-queue', (roomData) => {
-    console.log('Added to queue');
-    const gameView = document.getElementById('game-view');
-    mainMenu.style.display = 'none';
-    gameView.style.display = 'block';
     blackjack.renderGame(playersContainer, roomData);
-    blackjack.initBlackjack(socket, buttonsContainer);
     disableBetInputContainer();
     statusText.innerText = "Joined queue";
-});
-
-socket.on('update-status', message => {
-    console.log('update status recieved');
-    statusText.innerText = message;
-});
-
-socket.on('render-game', roomData => {
-    console.log('re-rendering window');
-    blackjack.renderGame(playersContainer, roomData);
+    enableGameView();
 });
 
 socket.on('ready-recieved', () => {
-    console.log('ready recieved!');
     statusText.innerText = "Waiting for players"
-    readyButton.disabled = true;
-    console.log(betInput);
-    betInput.disabled = true;
-    readyButton.style.display = 'none';
+    disableBetInput();
 });
 
-socket.on('player-disconnect', (roomData) => {
-    console.log('Player disconnected re-rendering window');
-    blackjack.renderGame(playersContainer, roomData);
-});
-
-socket.on('player-connect', (roomData) => {
-    console.log('Player joined re-rendering window');
-    blackjack.renderGame(playersContainer, roomData);
-});
-
-socket.on('new-round', (roomData) => {
-    console.log('new round!');
+//Changed from next round to reset-UI
+socket.on('reset-ui', (roomData) => {
     enableBetInputContainer();
     blackjack.renderGame(playersContainer, roomData);
 });
 
-socket.on('disable-bet-input', () => {
-    console.log('disabling bet input');
-    betInput.disabled = true;
-});
+function enableMainMenu() {
+    mainMenu.style.display = 'block';
+    gameView.style.display = 'none';
+}
+
+function enableGameView() {
+    mainMenu.style.display = 'none';
+    gameView.style.display = 'block';
+}
 
 function enableBetInputContainer() {
     readyButton.disabled = false;
@@ -136,6 +110,18 @@ function disableBetInputContainer() {
     readyButton.style.display = 'none'
     betInput.disabled = true;
     betInputContainer.style.display = 'none';
+}
+
+function disableBetInput() {
+    readyButton.disabled = true;
+    readyButton.style.display = 'none'
+    betInput.disabled = true;
+}
+
+function enableBetInput() {
+    readyButton.disabled = false;
+    readyButton.style.display = 'inline'
+    betInput.disabled = false;
 }
     
 function disableGameButtons() {

@@ -9,8 +9,8 @@ export function initRoomSelect(clientSocket, menuContainer, table, modal, roomNa
     socket = clientSocket;
     menuContainer.style.display = 'block';
     modal.style.display = 'none';
-    console.log('requesting room data');
-    socket.emit('request-room-data');
+    console.log('fetch table data');
+    socket.emit('fetch-table-data');
     document.getElementById('create-room-btn').addEventListener('click', event => createPressed(modal, roomNameContainer));
     document.getElementById('join-btn').addEventListener('click', event => joinPressed(table, modal, roomNameContainer));
     document.getElementById('refresh-btn').addEventListener('click', refreshPressed);
@@ -92,17 +92,17 @@ function joinPressed (table, modal, roomNameContainer) {
 
 function refreshPressed() {
     console.log('requesting room data');
-    socket.emit('request-room-data');
+    socket.emit('fetch-table-data');
 }
 
 function createRoom(roomName, playerName, playerBank) {
     console.log(`Attempting to create room with name=${roomName}`);
-    socket.emit('create-room', roomName, playerName, playerBank);
+    socket.emit('create-table', roomName, playerName, playerBank);
 }
 
 function joinRoom(playerName, playerBank, roomId) {
     console.log(`Attempting to join room with id=${roomId}`);
-    socket.emit('join-room', playerName, playerBank, roomId);
+    socket.emit('join-table', roomId, playerName, playerBank);
 }
 
 export function renderTable(table, rooms = null) {

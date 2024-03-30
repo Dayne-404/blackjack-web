@@ -6,16 +6,16 @@ class Table {
     constructor(name, maxPlayers = 4) {
         this.name = name;
         this.maxPlayers = maxPlayers;
+        
         this.players = {};
         this.dealer = new Dealer();
         this.deck = new Deck();
-        this.full = this.AtCapacity();
 
-        this.order =[]; //Have to fix this if players are added
-        this.playersReady = 0;
         this.turnIndex = 0;
-        this.state = 0; //0 for waiting for players to bet and ready up
+        this.order =[]; //Have to fix this if players are added
         this.queue = [];
+        this.playersReady = 0;
+        this.state = 0; //0 for waiting for players to bet and ready up
     }
 
     nextRound() {
@@ -72,7 +72,6 @@ class Table {
 
             if(!push) {
                 if(winModifier === 0) {
-                    console.log('adding to dealer bank');
                     this.dealer.bank += this.players[id].bet;
                 } else {
                     this.players[id].bet = this.players[id].bet * winModifier;
@@ -86,8 +85,10 @@ class Table {
         return playersWinType;
     }
 
-    playerHit() {
-        const playerId = this.getPlayerInTurn()
+    playerHit(playerId) {
+        if(playerId !== this.getPlayerInTurn())
+            return this.getPlayerInTurn();
+
         this.players[playerId].recieveCard(this.deck.takeCard());
 
         if(this.players[playerId].hand.state > 0) {
@@ -97,9 +98,10 @@ class Table {
         return this.getPlayerInTurn();
     }
 
-    playerDoubleDown() {
-        const playerId = this.getPlayerInTurn();
-        console.log(this.players[playerId]);
+    playerDoubleDown(playerId) {
+        if(playerId !== this.getPlayerInTurn())
+            return this.getPlayerInTurn();
+
         this.players[playerId].bank -= this.players[playerId].bet;
         this.players[playerId].bet *= 2;
         this.players[playerId].recieveCard(this.deck.takeCard());
@@ -107,13 +109,16 @@ class Table {
         return this.getPlayerInTurn();
     }
 
-    playerStay() {
+    playerStay(playerId) {
+        if(playerId !== this.getPlayerInTurn())
+            return this.getPlayerInTurn();
         this.turnIndex++;
         return this.getPlayerInTurn();
     }
 
-    isPlayerBlackjack() {
-        const playerId = this.getPlayerInTurn();
+    isPlayerBlackjack(playerId) {
+        if(!this.players[playerId]) 
+            return false;
         return this.players[playerId].hand.state;
     }
 
@@ -130,45 +135,31 @@ class Table {
     }
 
     addPlayer(socketId, player) {
-        if(!this.full) {
+        if(!this.isFull()) {
             this.players[socketId] = player;
             this.order.push(socketId);
-            this.full = this.AtCapacity();
         }
     }
 
     addPlayerToQueue(socketId, player) {
-        console.log('Adding player to queue');
-        if(!this.full) {
+        if(!this.isFull()) {
             this.players[socketId] = player;
             this.queue.push(socketId);
-            this.full = this.AtCapacity();
-            console.log('players: ', this.players);
-            console.log('queue: ', this.queue);
         }
     }
 
     moveFromQueueToGame() {
-        console.log(this.queue);
-        console.log(this.queue.length);
-        console.log('Moving players from queue to game');
         while (this.queue.length > 0) {
             this.order.push(this.queue.shift());
         }
-        
-
-        console.log(this.queue);
     }
 
     removePlayer(socketId) {
         let removeIndex = this.queue.indexOf(socketId);
 
         if(this.queue.includes(socketId) && removeIndex > -1) {
-            
-            console.log('Removing player from queue');
             this.queue.splice(removeIndex, 1);
             delete this.players[socketId];
-            this.full = this.AtCapacity();
             return this.getPlayerInTurn();
         }
 
@@ -189,16 +180,15 @@ class Table {
             this.order.splice(removeIndex, 1);
         }
 
-        this.full = this.AtCapacity();
         return this.getPlayerInTurn();
     }
 
-    safeFormat() {
+    menuFormat() {
         return {
             'name': this.name,
             'currentPlayers': Object.keys(this.players).length,
             'maxPlayers': this.maxPlayers,
-            'full': this.roomAvalible,
+            'full': this.isFull(),
             'private': false,
         };
     }
@@ -216,11 +206,18 @@ class Table {
         };
     }
 
-    AtCapacity() {
+    isFull() {
         if(Object.keys(this.players).length >= this.maxPlayers)
             return true;
 
         return false;
+    }
+
+    isEmpty() {
+        if(this.order.length === 0 && this.queue.length === 0) return 1
+        else if (this.order.length === 0 && this.queue.length > 0) return 2
+
+        return 0;
     }
 }
 
