@@ -35,6 +35,13 @@ class Table {
             this.state === 0; 
     }
 
+    playerReady(playerId, bet) {
+        const player = this.players[playerId];
+        player.setBet(Number(bet));
+        player.ready = true;
+        this.playersReady++;
+    }
+
     startRound() {
         this.state = 1; //Means the game is being played
         

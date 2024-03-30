@@ -28,9 +28,9 @@ readyButton.addEventListener('click', () => {
     socket.emit('player-ready', bet);
 });
 
-hitButton.addEventListener('click', () => socket.emit('blackjack-action', 'hit'));
-stayButton.addEventListener('click', () => socket.emit('blackjack-action', 'stay'));
-dblDownButton.addEventListener('click', () => socket.emit('blackjack-action', 'dbl-down'));
+hitButton.addEventListener('click', () => socket.emit('play-turn', 'hit'));
+stayButton.addEventListener('click', () => socket.emit('play-turn', 'stay'));
+dblDownButton.addEventListener('click', () => socket.emit('play-turn', 'dbl-down'));
 
 //Main Menu UI Rendering
 menu.initRoomSelect(socket, mainMenu, table, modal, roomNameContainer); //Will come back to make this more readable later
@@ -40,7 +40,7 @@ socket.on('get-room-data', (serverRooms) => { menu.renderTable(table, serverRoom
 socket.on('update-status', message => { statusText.innerText = message; });
 socket.on('render-game', roomData => { blackjack.renderGame(playersContainer, roomData); });
 
-//Changed from disable-bet-input --> player-pushed
+//Changed from disable-bet-input --> pushed
 socket.on('pushed', () => betInput.disabled = true);
 
 socket.on('take-turn', () => { enableGameButtons(); });
@@ -51,7 +51,7 @@ socket.on('first-turn-over', () => {
     splitButton.disabled = true;
 });
 
-socket.on('starting-round', () => {
+socket.on('starting-round', roomData => {
     readyButton.style.display = 'none';
     readyButton.disabled = true;
     betInput.disabled = true;
