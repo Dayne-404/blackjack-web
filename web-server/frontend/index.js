@@ -39,6 +39,10 @@ socket.on('send-table-data', (serverRooms) => {
     menu.renderTable(table, serverRooms); 
 });
 
+socket.on('render-menu', () => { 
+    disableGameView(); 
+});
+
 //Game UI Rendering
 socket.on('update-status', message => { statusText.innerText = message; });
 socket.on('render-game', roomData => { blackjack.renderGame(playersContainer, roomData); });
@@ -54,18 +58,11 @@ socket.on('first-turn-over', () => {
     splitButton.disabled = true;
 });
 
-socket.on('starting-round', roomData => {
-    readyButton.style.display = 'none';
-    readyButton.disabled = true;
-    betInput.disabled = true;
-    disableBetInputContainer();
-    console.log('starting round');
-});
-
 socket.on('joined-table', (roomData) =>  {
     blackjack.renderGame(playersContainer, roomData);
     buttonsContainer.style.display = 'none';
     statusText.innerText = "Ready up";
+    enableBetInputContainer();
     enableGameView();
 });
 
@@ -87,14 +84,15 @@ socket.on('reset-ui', (roomData) => {
     blackjack.renderGame(playersContainer, roomData);
 });
 
-function enableMainMenu() {
-    mainMenu.style.display = 'block';
-    gameView.style.display = 'none';
-}
-
 function enableGameView() {
     mainMenu.style.display = 'none';
     gameView.style.display = 'block';
+}
+
+function disableGameView() {
+    console.log('disable');
+    gameView.style.display = 'none';
+    mainMenu.style.display = 'block';
 }
 
 function enableBetInputContainer() {

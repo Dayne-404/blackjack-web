@@ -45,7 +45,7 @@ io.on('connection', socket => {
   
   //Client Creates and gets added to a table
   socket.on('create-table', (tableName, playerName, playerBank) => {
-    const status = createTable(socket.id, tableName, playerName, playerBank);
+    const status = createTable(socket, tableName, playerName, playerBank);
     console.log(`${socket.id} : Create table exited with code ${status}`);
   });
 
@@ -104,9 +104,7 @@ function createTable(socket, tableName, playerName, playerBank) {
   socketToTable[socket.id] = tableId;
     
   socket.join(tableId);
-  socket.emit('joined-table');
-  sendGameDataToSocket(socket, tableId);
-
+  socket.emit('joined-table', tables[tableId].gameFormat());
   return 0;
 }
 
@@ -137,10 +135,20 @@ function addPlayerToTable(io, socket, tableId, playerName, playerBank) {
 function playerReady(io, socket, bet) {
   const tableId = socketToTable[socket.id];
   const table = tables[tableId];
+
+  if(!tableId || !table) {
+    socket.emit('render-menu');
+    sendSimplifiedTableData(socket);
+    return 1;
+  }
+
   const player = table.players[socket.id];
 
-  if(!tableId || !table || !player) 
+  if(!player) {
+    socket.emit('render-menu');
+    sendSimplifiedTableData(socket);
     return 1;
+  }
 
   if(!player.ready) {
     table.playerReady(socket.id, bet);
@@ -156,9 +164,16 @@ function playerReady(io, socket, bet) {
 function playTurn(io, socket, playerAction) {
   const tableId = socketToTable[socket.id];
   const table = tables[tableId];
+  
+  if(!table || !doesTableExist(socket.id)) {
+    socket.emit('render-menu');
+    sendSimplifiedTableData(socket);
+    return 1;
+  }
+
   const currentPlayer = table.getPlayerInTurn();
   
-  if(!doesTableExist(socket.id) || socket.id !== currentPlayer || !validActions.has(playerAction)) 
+  if(socket.id !== currentPlayer || !validActions.has(playerAction)) 
     return 1;
 
   let nextPlayer = handlePlayerAction(socket, tableId, currentPlayer, playerAction);
@@ -170,7 +185,7 @@ function playTurn(io, socket, playerAction) {
     gotoNextRound(io, tableId, DELAY_BETWEEN_ROUNDS);
   } else if (currentPlayer !== nextPlayer) {
     socket.emit('end-turn');
-    updateSocketStatusInTable(io, tableId, message); 
+    updateSocketStatusInTable(io, tableId, table.players[nextPlayer].name + ' turn'); 
     io.sockets.sockets.get(nextPlayer).emit('take-turn');
   }
 
@@ -199,7 +214,8 @@ function disconnectHandler(io, socket, reason) {
     return 2;
   }
 
-  io.to(tableId).emit('render-game', table[tableId].gameFormat())
+  io.to(tableId).emit('render-game', table.gameFormat());
+
   if(table.canStartRound()) {
     startRound(io, table, tableId);
   } else if(table.state === 1) {

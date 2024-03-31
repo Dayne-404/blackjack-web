@@ -10,9 +10,10 @@ Web server to do list
 [] Room checks (making sure server doesn't crash when error)
 [] Error checks from all sockets
 
-[] Code refactor ;-;
-    [] Helper js file for game functions
-    [] Clean app.js
+[x] Code refactor ;-;
+    [] Helper js file for game functions (May come back to this later)
+    [x] Clean app.js
+    [x] Clean Table.js
 
 Stretch Goals
 
