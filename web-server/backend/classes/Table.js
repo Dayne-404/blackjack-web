@@ -62,8 +62,8 @@ class Table {
         let playersWinType = {};
         this.order.forEach(id => {
             let [winCondition, winModifier, push] = getWinCondition (
-                this.players[id].hand.state,
-                this.players[id].hand.total,
+                this.players[id].getCurrentHand().state,
+                this.players[id].getCurrentHand().total,
                 this.dealer.hand.state,
                 this.dealer.hand.total
             );
@@ -91,35 +91,67 @@ class Table {
 
         this.players[playerId].recieveCard(this.deck.takeCard());
 
-        if(this.players[playerId].hand.state > 0) {
-            this.turnIndex++;
+        if(this.players[playerId].getCurrentHand().state > 0) {
+            this.moveToNextPlayerOrHand(this.players[playerId]);
         }
 
         return this.getPlayerInTurn();
     }
 
-    playerDoubleDown(playerId) {
-        if(playerId !== this.getPlayerInTurn())
-            return this.getPlayerInTurn();
+    moveToNextPlayerOrHand(player) {
+        if(player.hasAnotherHand()) {
+            player.gotoNextHand();
+        } else {
+            this.turnIndex++;
+        }
+    }
 
-        this.players[playerId].bank -= this.players[playerId].bet;
-        this.players[playerId].bet *= 2;
-        this.players[playerId].recieveCard(this.deck.takeCard());
-        this.turnIndex++;
+    playerDoubleDown(playerId) {
+        const currentPlayerId = this.getPlayerInTurn();
+
+        if (playerId !== currentPlayerId)
+            return currentPlayerId;
+    
+        const currentPlayer = this.players[playerId];
+
+        if (currentPlayer.canDoubleDown()) {
+            currentPlayer.bank -= currentPlayer.bet;
+            currentPlayer.bet *= 2;
+            currentPlayer.recieveCard(this.deck.takeCard());
+            this.moveToNextPlayerOrHand(currentPlayer);
+        }
+         
+        return this.getPlayerInTurn();
+    }
+
+    playerSplit(playerId) {
+        const currentPlayerId = this.getPlayerInTurn();
+
+        if (playerId !== currentPlayerId)
+            return currentPlayerId;
+
+        const currentPlayer = this.players[playerId];
+
+        if (currentPlayer.canSplitHand()) {
+            currentPlayer.bank -= currentPlayer.bet;
+            currentPlayer.bet *= 2;
+            currentPlayer.split(this.deck.takeCard(), this.deck.takeCard());
+        } 
+
         return this.getPlayerInTurn();
     }
 
     playerStay(playerId) {
         if(playerId !== this.getPlayerInTurn())
             return this.getPlayerInTurn();
-        this.turnIndex++;
+        this.moveToNextPlayerOrHand(this.players[playerId]);
         return this.getPlayerInTurn();
     }
 
     isPlayerBlackjack(playerId) {
         if(!this.players[playerId]) 
             return false;
-        return this.players[playerId].hand.state;
+        return this.players[playerId].getCurrentHand().state;
     }
 
     dealerPlay() {

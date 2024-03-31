@@ -1,8 +1,7 @@
 class Hand {
-    constructor() {
-        this.cards = [];
+    constructor(cards = []) {
+        this.cards = cards;
         this.total = this.calculateHandTotal(this.cards);
-        this.isSplit = false;
         this.state = 0; //0 for 
     }
 
@@ -14,6 +13,18 @@ class Hand {
         this.cards.push(card);
         this.total += this.getBlackjackCardValue(card);
         this.state = this.getHandState();
+    }
+
+    splitHand() {
+        return [new Hand([this.cards[0]]), new Hand([this.cards[1]])];
+    }
+
+    canDoubleDown() {
+        return this.cards.length === 2;
+    }
+
+    canSplit() {
+        return this.cards.length === 2 && this.cards[0].value === this.cards[1].value;
     }
 
     getBlackjackCardValue(card) {

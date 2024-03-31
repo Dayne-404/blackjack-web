@@ -5,17 +5,21 @@ Web server to do list
 [x] Disconnect System
 [x] Queue System (Think I fixed the bugs? maybe?)
 [x] Stop queued players from sending commands...
-[] Split System
+[x] Split System 
+[] Split bets
+[] Split status
 
-[] Room checks (making sure server doesn't crash when error)
-[] Error checks from all sockets
+[x] Room checks (making sure server doesn't crash when error)
+[x] Error checks from all sockets
+
+[] Valid bet checks
 
 [x] Code refactor ;-;
     [] Helper js file for game functions (May come back to this later)
     [x] Clean app.js
     [x] Clean Table.js
 
-Stretch Goals
+Stretch Goals (I think I will save for react app)
 
 [] Timeout / Disconnect
 [] Time inbetween card pulls

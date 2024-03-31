@@ -31,6 +31,7 @@ readyButton.addEventListener('click', () => {
 hitButton.addEventListener('click', () => socket.emit('play-turn', 'hit'));
 stayButton.addEventListener('click', () => socket.emit('play-turn', 'stay'));
 dblDownButton.addEventListener('click', () => socket.emit('play-turn', 'dbl-down'));
+splitButton.addEventListener('click', () => socket.emit('play-turn', 'split'));
 
 //Main Menu UI Rendering
 menu.initRoomSelect(socket, mainMenu, table, modal, roomNameContainer); //Will come back to make this more readable later
@@ -50,12 +51,17 @@ socket.on('render-game', roomData => { blackjack.renderGame(playersContainer, ro
 //Changed from disable-bet-input --> pushed
 socket.on('pushed', () => betInput.disabled = true);
 
-socket.on('take-turn', () => { enableGameButtons(); });
+socket.on('take-turn', () => { 
+    enableGameButtons(); 
+    statusText.value = 'Your turn';
+});
 socket.on('end-turn', () => { disableGameButtons(); });
 
-socket.on('first-turn-over', () => {
-    dblDownButton.disabled = true;
-    splitButton.disabled = true;
+//first-turn-over
+socket.on('canSplitOrDouble', (canSplit, canDoubleDown) => {
+    console.log(canSplit, canDoubleDown);
+    dblDownButton.disabled = !canDoubleDown;
+    splitButton.disabled = !canSplit;
 });
 
 socket.on('joined-table', (roomData) =>  {

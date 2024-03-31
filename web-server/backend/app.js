@@ -110,8 +110,6 @@ function createTable(socket, tableName, playerName, playerBank) {
 
 function addPlayerToTable(io, socket, tableId, playerName, playerBank) {
   if(!tables[tableId]) return 1;
-  console.log('TABLE ID:',tableId);
-  console.log(tables[tableId]);
   if(tables[tableId].isFull()) return 1;
 
   const newPlayer = new Player(playerName, playerBank);
@@ -187,6 +185,7 @@ function playTurn(io, socket, playerAction) {
     socket.emit('end-turn');
     updateSocketStatusInTable(io, tableId, table.players[nextPlayer].name + ' turn'); 
     io.sockets.sockets.get(nextPlayer).emit('take-turn');
+    updateClientButtons(tableId, nextPlayer);
   }
 
   return 0;
@@ -222,6 +221,7 @@ function disconnectHandler(io, socket, reason) {
     if(nextPlayer) {
       updateSocketStatusInTable(io, tableId, table.players[nextPlayer].name + ' turn');
       io.sockets.sockets.get(nextPlayer).emit('take-turn');
+      updateClientButtons(tableId, nextPlayerId);
     } else {
       endRound(io, table, tableId);
       gotoNextRound(io, tableId, DELAY_BETWEEN_ROUNDS);
@@ -278,7 +278,7 @@ function handlePlayerAction(socket, tableId, currentPlayer, action) {
   const table = tables[tableId];
   
   if(action === 'hit') {
-    socket.emit('first-turn-over');
+    socket.emit('canSplitOrDouble', (false, false));
     let nextPlayer = table.playerHit(socket.id);
 
     if(nextPlayer && currentPlayer === nextPlayer && table.isPlayerBlackjack(socket.id)) {
@@ -290,6 +290,10 @@ function handlePlayerAction(socket, tableId, currentPlayer, action) {
     return table.playerStay(socket.id);
   } else if (action === 'dbl-down') {         //Add a first round check
     return table.playerDoubleDown(socket.id);
+  } else if (action === 'split') {
+    const nextPlayerId = table.playerSplit(socket.id);
+    updateClientButtons(tableId, currentPlayer);
+    return nextPlayerId;
   }
 
   return undefined;
@@ -305,6 +309,7 @@ function startRound(io, table, tableId) {
       const nextPlayerName = table.players[nextPlayerId].name;
       updateSocketStatusInTable(io, tableId, `${nextPlayerName} turn`);
       io.sockets.sockets.get(nextPlayerId).emit('take-turn');
+      updateClientButtons(tableId, nextPlayerId);
     } else {
       endRound(io, table, tableId);
       gotoNextRound(io, tableId, 8000);
@@ -312,5 +317,11 @@ function startRound(io, table, tableId) {
   } else {
     updateSocketStatusInTable(io, tableId, `${firstPlayerName} turn`);
     io.sockets.sockets.get(firstPlayerId).emit('take-turn');
+    updateClientButtons(tableId, firstPlayerId);
   }
+}
+
+function updateClientButtons(tableId, playerId) {
+  const player = tables[tableId].players[playerId];
+  io.sockets.sockets.get(playerId).emit('canSplitOrDouble', player.canSplitHand(), player.canDoubleDown());
 }
