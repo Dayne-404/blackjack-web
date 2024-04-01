@@ -149,8 +149,14 @@ function playerReady(io, socket, bet) {
   }
 
   if(!player.ready) {
-    table.playerReady(socket.id, bet);
-    socket.emit('ready-recieved');
+    betNum = Number(bet);
+    if(table.playerHasValidBet(socket.id, betNum)) {
+      table.playerReady(socket.id, betNum);
+      socket.emit('ready-recieved');
+    } else {
+      socket.emit('invalid-bet');
+    }
+    
 
     if(table.canStartRound()) 
       startRound(io, table, tableId);

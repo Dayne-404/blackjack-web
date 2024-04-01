@@ -24,6 +24,10 @@ class Player {
         }
     }
 
+    isValidBet(bet) {
+        return (this.bank - bet) >= 0
+    }
+
     hasAnotherHand() {
         if(this.hand[this.handIndex + 1])
             return true;
@@ -75,6 +79,8 @@ class Player {
     setBet(bet) {
         if(this.bet != 0) {
             return;
+        } else if(this.bet < 0) {
+            this.bet = 0;
         }
             
         this.bet = bet;

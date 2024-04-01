@@ -50,6 +50,14 @@ socket.on('render-game', roomData => { blackjack.renderGame(playersContainer, ro
 
 //Changed from disable-bet-input --> pushed
 socket.on('pushed', () => betInput.disabled = true);
+socket.on('invalid-bet', () => {
+    console.log('bet invalid');
+    statusText.innerText = "Invalid bet";
+    setTimeout(() => {
+        if(statusText.innerText === "Invalid bet")
+            statusText.innerText = "Ready up";
+    }, 2000)
+})
 
 socket.on('take-turn', () => { 
     enableGameButtons(); 

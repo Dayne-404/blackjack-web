@@ -35,9 +35,13 @@ class Table {
             this.state === 0; 
     }
 
+    playerHasValidBet(playerId, bet) {
+        return this.players[playerId].isValidBet(bet) && bet >= 0;
+    }
+
     playerReady(playerId, bet) {
         const player = this.players[playerId];
-        player.setBet(Number(bet));
+        player.setBet(bet);
         player.ready = true;
         this.playersReady++;
     }
