@@ -6,13 +6,12 @@ Web server to do list
 [x] Queue System (Think I fixed the bugs? maybe?)
 [x] Stop queued players from sending commands...
 [x] Split System 
-[] Split bets
-[] Split status
+[x] Split bets
+[(kinda)] Split status
 
 [x] Room checks (making sure server doesn't crash when error)
 [x] Error checks from all sockets
-
-[] Valid bet checks
+[x] Valid bet checks
 
 [x] Code refactor ;-;
     [] Helper js file for game functions (May come back to this later)
