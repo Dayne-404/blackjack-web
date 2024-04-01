@@ -65,25 +65,29 @@ class Table {
     endRound() {
         let playersWinType = {};
         this.order.forEach(id => {
-            let [winCondition, winModifier, push] = getWinCondition (
-                this.players[id].getCurrentHand().state,
-                this.players[id].getCurrentHand().total,
-                this.dealer.hand.state,
-                this.dealer.hand.total
-            );
-
-            this.players[id].push = push;
-
-            if(!push) {
-                if(winModifier === 0) {
-                    this.dealer.bank += this.players[id].bet;
-                } else {
-                    this.players[id].bet = this.players[id].bet * winModifier;
-                    this.players[id].bank += this.players[id].bet;
-                }
-            }
+            for(let i = 0; i < this.players[id].hand.length; i++) {
+                let [winCondition, winModifier, push] = getWinCondition (
+                    this.players[id].hand[i].state,
+                    this.players[id].hand[i].total,
+                    this.dealer.hand.state,
+                    this.dealer.hand.total
+                );
                 
-            playersWinType[id] = winCondition;
+                console.log('WAHWAHWAH', this.players[id].push[i], push);
+                this.players[id].push[i] = push;
+
+                if(!push) {
+                    if(winModifier === 0) {
+                        this.dealer.bank += this.players[id].bet[i];
+                    } else {
+                        this.players[id].bet[i] *= winModifier;
+                        this.players[id].bank += this.players[id].bet[0];
+                    }
+                }
+
+                console.log('win: ', winCondition);
+                playersWinType[id] = winCondition;
+            }
         });
 
         return playersWinType;
@@ -119,9 +123,7 @@ class Table {
         const currentPlayer = this.players[playerId];
 
         if (currentPlayer.canDoubleDown()) {
-            currentPlayer.bank -= currentPlayer.bet;
-            currentPlayer.bet *= 2;
-            currentPlayer.recieveCard(this.deck.takeCard());
+            currentPlayer.doubleDown(this.deck.takeCard());
             this.moveToNextPlayerOrHand(currentPlayer);
         }
          
@@ -137,8 +139,6 @@ class Table {
         const currentPlayer = this.players[playerId];
 
         if (currentPlayer.canSplitHand()) {
-            currentPlayer.bank -= currentPlayer.bet;
-            currentPlayer.bet *= 2;
             currentPlayer.split(this.deck.takeCard(), this.deck.takeCard());
         } 
 
@@ -205,7 +205,7 @@ class Table {
             this.playersReady--;
         }
         
-        this.dealer.bank += this.players[socketId].bet;
+        this.dealer.bank += this.players[socketId].reduceBets();
         delete this.players[socketId];
         
         if(this.turnIndex && removeIndex < this.turnIndex) {
@@ -217,6 +217,10 @@ class Table {
         }
 
         return this.getPlayerInTurn();
+    }
+
+    isBetPushed(playerId) {
+        return this.players[playerId].bet[0] > 0
     }
 
     menuFormat() {

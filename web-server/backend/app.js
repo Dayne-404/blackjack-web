@@ -273,7 +273,7 @@ function gotoNextRound(io, tableId, delay) {
 
 function updateSocketStatusIfPushed(io, table, order) {
   order.forEach(socketId => {
-    if(table.players[socketId].bet > 0) {
+    if(table.isBetPushed(socketId) > 0) {
       table.players[socketId].resetPush();
       io.sockets.sockets.get(socketId).emit('pushed');
     }
